@@ -92,8 +92,8 @@ function buildTable(summaries: Summary[]) {
     const tableHead = dedent(`
         ## Test cases
 
-        | Ok? | Test name | Points |
-        | --- | --- | --- |
+        | Ok? | Test name | Status | Points |
+        | --- | --- | --- | --- |
     `);
 
     const tableBody = summaries
