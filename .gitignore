@@ -2,3 +2,5 @@ node_modules
 results-vitest.json
 result.json
 release-notes.md
+*.class
+*.tmp

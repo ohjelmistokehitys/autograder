@@ -87,6 +87,7 @@ export namespace AutogradingTests {
      * generate their outputs.
      */
     export type TestSuite = {
+        cwd?: string;
         defaults: {
             timeout: Timeout;
             points: number;

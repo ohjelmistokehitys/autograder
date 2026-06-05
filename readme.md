@@ -47,6 +47,8 @@ runSuite({
 });
 ```
 
+Attributes prefixed with `$` have special meaning. The `$setup` and `$run` fields specify commands to run for setup and testing, respectively. These commands will be executed in the shell using the `zx` library, which provides a convenient API for running shell commands in Node.js. The `$run` field can be either a string (for a single command) or an array of strings (for multiple commands to run in sequence). The runner will execute these commands and capture their output for grading.
+
 The runner can run multiple test suites in a single run and each suite can have their own points, timeouts and setup commands. See more examples in `tests/example.spec.ts`.
 
 Grading the results of each test can be based on the presence or absence of specified strings in the command output, or by comparing the output of the command to another command. The runner captures all command output and error logs for each test case, which can be included in the final grading report. If a test case fails, the runner will include the relevant logs and error messages in the final report to help with debugging.
