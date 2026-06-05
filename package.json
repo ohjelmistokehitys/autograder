@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "test": "vitest run --reporter=default --reporter=json --output-file=results-vitest.json",
+    "report": "npx --yes tsx src/reporter.ts results-vitest.json result.json",
+    "release-notes": "npx --yes tsx src/release-notes.ts results-vitest.json release-notes.md"
+  },
+  "dependencies": {
+    "vitest": "^4.1.7",
+    "zx": "lite"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^25.9.1"
+  }
+}
