@@ -18,25 +18,25 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
     toArray(testSuite.beforeAll).forEach(runnable => {
         test.beforeAll(async () => {
             await run(runnable);
-        });
+        }, timeout(runnable, testSuite));
     });
 
     toArray(testSuite.beforeEach).forEach(runnable => {
         test.beforeEach(async () => {
             await run(runnable);
-        });
+        }, timeout(runnable, testSuite));
     });
 
     toArray(testSuite.afterAll).forEach(runnable => {
         test.afterAll(async () => {
             await run(runnable);
-        });
+        }, timeout(runnable, testSuite));
     });
 
     toArray(testSuite.afterEach).forEach(runnable => {
         test.afterEach(async () => {
             await run(runnable);
-        });
+        }, timeout(runnable, testSuite));
     });
 
 
@@ -50,19 +50,23 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
             let output = "";
 
             if (testCase.$setup) {
-                const p = await runCmd(testCase.$setup, logs);
-                output += p.toString();
+                const setup = await runCmd(testCase.$setup, logs);
+                output += setup.toString();
             }
 
-            for (const cmd of toArray(testCase.$run)) {
-                const p = await runCmd(cmd, logs);
-                output += p.toString();
-            }
+            const run = await runCmd(testCase.$run, logs);
+            output += run.toString();
 
             await assertOutput(testCase, output);
 
-            // test passed if we reached this point
-            meta.points = meta.maxPoints;
+            if (testCase.customGrader) {
+                // if a custom grader is provided, use it to determine the points awarded for the test
+                const { points } = await testCase.customGrader({ logs, self: testCase, runCmd });
+                meta.points = points;
+            } else {
+                // full points awarded if there is no custom grader and the test passed without throwing an error
+                meta.points = meta.maxPoints;
+            }
 
         }, timeout(testCase, testSuite));
     });
@@ -73,14 +77,20 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
      *
      * @param runnable
      */
-    async function run(runnable: AutogradingTests.Runnable): Promise<unknown> {
+    async function run(runnable: AutogradingTests.Runnable): Promise<ProcessOutput> {
         if (typeof runnable === 'function') {
             return await runnable();
         }
 
-        for (const cmd of toArray(runnable.$run)) {
-            await runCmd(cmd);
+        if (typeof runnable === 'string') {
+            return await runCmd(runnable);
         }
+
+        if ('name' in runnable && '$run' in runnable) {
+            return await runCmd(runnable.$run);
+        }
+
+        throw new Error(`Unsupported runnable: ${JSON.stringify(runnable)}`);
     }
 
     /**
@@ -102,8 +112,8 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         }
 
         // Run the specified command and compare its output to the test output.
-        if ('$compareRun' in testCase) {
-            const compareRun = await runCmd(testCase.$compareRun);
+        if ('$compareRun' in testCase && testCase.$compareRun) {
+            const compareRun = await run(testCase.$compareRun);
             const compareOutput = compareRun.toString().trim();
 
             expect(output).toContain(compareOutput);

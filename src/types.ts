@@ -1,4 +1,5 @@
 import { TaskMeta } from 'vitest';
+import { ProcessOutput } from 'zx';
 
 declare module 'vitest' {
 
@@ -18,6 +19,7 @@ export namespace VitestReport {
     export type VitestResults = {
         testResults?: Array<{
             assertionResults?: VitestAssertion[];
+            message: string;
         }>;
     };
 
@@ -89,7 +91,10 @@ export namespace AutogradingTests {
     export type TestSuite = {
         cwd?: string;
         defaults: {
+            /** Timeout for a test case or a lifecycle hook */
             timeout: Timeout;
+
+            /** Default points for a single test case */
             points: number;
         };
         beforeAll?: Runnable | Runnable[];
@@ -102,40 +107,56 @@ export namespace AutogradingTests {
     /** Timeout with a number and unit. */
     type Timeout = { seconds: number } | { minutes: number };
 
-    /** A runnable can be given either as a shell command or as a JS function. */
-    export type Runnable = RunnableObj | RunnableFunc;
+    /** A runnable can be given either as a shell command, an object or a JS function. */
+    export type Runnable = string | RunnableObj | Hook;
 
     export type RunnableObj = {
         name: string;
-        $run: string | string[];
+        $run: string;
         timeout?: Timeout;
     }
 
-    export type RunnableFunc = () => Promise<any> | void;
+    export type Hook = () => Promise<any> | void;
 
 
-    export type BaseTest = RunnableObj & {
+    export type CommandTest = RunnableObj & {
         description: string;
         $setup?: string;
         points?: number;
+
+        /** A string or array of strings that the output must contain for the test to pass. */
+        contains?: string | string[];
+
+        /** A string or array of strings that the output must not contain. */
+        notContains?: string | string[];
+
+        /** The command to run for comparison against. The test passes if the output of the test matches the output of this command. */
+        $compareRun?: Runnable;
+
+        /**
+         * A custom grader function that receives the test context and returns the points awarded. For the
+         * custom grader to be invoked, other all other checks must pass and the setup and run commands
+         * must execute successfully.
+         *
+         * Any operations including addiotional commands or assertins can be invoked within the custom grader.
+         * If the test should be failed, the grader should throw an error. Vitest `expect` assertions are
+         * recommended for throwing errors, as they will be consistent with the rest of the checks.
+         */
+        customGrader?: (context: {
+            /** Logs for inspecting the test execution and for adding new entries. */
+            logs: VitestReport.RunLog[],
+
+            /** The test case itself, for dynamically referencing fields. */
+            self: CommandTest,
+
+            /**
+             * The function that can run shell commands. This is provided for convenience, but it
+             * also provides a way to use the exact same environment and working directory as the rest of the
+             * commands in the test case.
+             */
+            runCmd: (cmd: string, logs?: VitestReport.RunLog[]) => Promise<ProcessOutput>
+        }) => Promise<Pick<TaskMeta, 'points'>>;
     }
 
-    type ExecTest = BaseTest & {}
-
-    type OutputTest = BaseTest & {
-        // The expected output. If an array, the test passes if ALL of the outputs match.
-        contains: string | string[];
-    }
-
-    type NegativeOutputTest = BaseTest & {
-        // The output is expected to NOT contain this string. If an array, the test passes if none of the outputs match.
-        notContains: string | string[];
-    }
-
-    type CommandTest = BaseTest & {
-        // The command to run for comparison against. The test passes if the output of the test matches the output of this command.
-        $compareRun: string;
-    }
-
-    export type TestCase = ExecTest | OutputTest | CommandTest | NegativeOutputTest;
+    export type TestCase = CommandTest;
 }

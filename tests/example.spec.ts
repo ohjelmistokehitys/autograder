@@ -13,13 +13,8 @@ runSuite({
     // Both JavaScript functions and shell commands are supported.
     // Also, beforeEach and afterAll/afterEach hooks are also supported.
     beforeAll: [
-        {
-            name: "Setup using shell command(s)",
-            $run: [
-                "echo 'Setting up test environment...'",
-                "echo 'This is the beforeAll hook!'"
-            ]
-        },
+        "echo 'Setting up test environment...'",
+        "echo 'This is the beforeAll hook!'",
         () => {
             console.log("Setup using a JavaScript function");
         }
@@ -37,10 +32,8 @@ runSuite({
         }, {
             name: "Bash Hello World",
             description: "Runs two scripts and checks that two separate strings are present in the output.",
-            $run: [
-                "echo 'Hello world!' > hello.tmp",
-                "cat hello.tmp"
-            ],
+            $setup: "echo 'Hello world!' > hello.tmp",
+            $run: "cat hello.tmp",
             contains: ["Hello", "world!"],
             points: 20
         }, {
@@ -59,22 +52,36 @@ runSuite({
         }, {
             name: "Running Python scripts",
             description: "Runs a Python file and checks its output. Also outputs the Python version for debugging purposes.",
-            $run: [
-                "python3 --version",
-                "python3 demo/hello.py"
-            ],
+            $setup: `python3 --version && python3 -m pip --version`,
+            $run: "python3 demo/hello.py",
             contains: "Hello from Python!",
             points: 50
         }, {
             name: "Running Docker containers",
             description: "Builds and runs a Docker image, then checks the output. This test has a longer timeout since pulling and building images can take some time.",
-            $run: [
-                "docker build --file=demo/hello.Dockerfile --tag=hello demo",
-                "docker run --rm hello"
-            ],
+            $setup: "docker build --file=demo/hello.Dockerfile --tag=hello demo",
+            $run: "docker run --rm hello",
             contains: "Hello from Docker!",
             points: 60,
             timeout: { minutes: 1 }
+        }, {
+            name: "Custom grader function",
+            description: "This test uses a custom grader function to determine the points awarded. Each alphabet in the output earns one point.",
+            $run: "echo 'A B C D E F G'",
+            points: 26,
+            customGrader: async ({ logs }) => {
+                let points = 0;
+                const outputs = logs.map(log => [log.stdout, log.stderr]).flat().join("\n");
+
+                // This is merely an example. A real grader could check different types of outputs or verify the
+                // amount of passed unit tests vs. failed tests, etc.
+                for (const char of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+                    if (outputs.includes(char)) {
+                        points += 1;
+                    }
+                }
+                return { points };
+            }
         }
     ]
 });
