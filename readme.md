@@ -15,10 +15,8 @@ For example, the following test suite runs a simple "Hello world" command and ch
 
 ```ts
 runSuite({
-    defaults: {
-        timeout: { seconds: 5 },
-        points: 1
-    },
+    defaultTimeout: { seconds: 5 },
+    defaultPoints: 1,
 
     tests: [
         {
@@ -36,9 +34,9 @@ runSuite({
         },
         {
             name: "Run Python tests with pytest",
-            description: "This test has a setup command that runs before the main command. Also, the $run field can be a string or an array of strings to run multiple commands in sequence.",
+            description: "This test has a setup command that runs before the main command.",
             $setup: "pip install pytest",
-            $run: ["pytest first_tests.py", "pytest additional_tests.py"],
+            $run: "pytest my_tests.py",
             contains: ["Hello world!", "All tests passed!"],
             points: 10,
             timeout: { minutes: 1 }

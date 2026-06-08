@@ -42,7 +42,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
 
     testSuite.tests.forEach(testCase => {
         test(testCase.name, async ({ task: { meta } }) => {
-            meta.maxPoints = testCase.points ?? testSuite.defaults.points;
+            meta.maxPoints = testCase.points ?? testSuite.defaultPoints;
             meta.description = testCase.description;
             meta.points = 0;
 
@@ -164,7 +164,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
  * specified for the runnable, the default timeout from the test suite is used.
  */
 function timeout(runnable: AutogradingTests.Runnable, suite: AutogradingTests.TestSuite): number {
-    const timeout = (typeof runnable === 'object' && 'timeout' in runnable && runnable.timeout) ? runnable.timeout : suite.defaults.timeout;
+    const timeout = (typeof runnable === 'object' && 'timeout' in runnable && runnable.timeout) ? runnable.timeout : suite.defaultTimeout;
 
     return 'seconds' in timeout ? timeout.seconds * 1000 : timeout.minutes * 60 * 1000;
 }

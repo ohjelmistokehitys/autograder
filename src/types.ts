@@ -89,14 +89,15 @@ export namespace AutogradingTests {
      * generate their outputs.
      */
     export type TestSuite = {
+        /** The working directory for all commands. If not specified, the current working directory of the process is used. */
         cwd?: string;
-        defaults: {
-            /** Timeout for a test case or a lifecycle hook */
-            timeout: Timeout;
 
-            /** Default points for a single test case */
-            points: number;
-        };
+        /** Timeout for a test case or a lifecycle hook */
+        defaultTimeout: Timeout;
+
+        /** Default points for a single test case */
+        defaultPoints: number;
+
         beforeAll?: Runnable | Runnable[];
         beforeEach?: Runnable | Runnable[];
         afterEach?: Runnable | Runnable[];

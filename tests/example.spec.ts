@@ -2,12 +2,8 @@ import { runSuite } from "../src/runner.js";
 
 runSuite({
 
-    defaults: {
-        timeout: {
-            seconds: 5,
-        },
-        points: 1
-    },
+    defaultTimeout: { seconds: 5 },
+    defaultPoints: 1,
 
     // The lifecycle hooks can be either single operations or arrays.
     // Both JavaScript functions and shell commands are supported.

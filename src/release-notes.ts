@@ -70,7 +70,12 @@ function buildTable(summaries: Summary[]) {
 
     lines.push(
         ...summaries
-            .map(test => [icon(test), test.name, test.status, `${test.points} / ${test.maxPoints}`])
+            .map(test => [
+                icon(test),
+                `[${test.name}](#${snakeCase(test.name)})`, // link to the log section for this test case
+                test.status,
+                `${test.points} / ${test.maxPoints}`
+            ])
             .map(columns => "| " + columns.join(' | ') + " |")
     );
 
@@ -84,6 +89,8 @@ function buildLog(testCases: VitestReport.VitestAssertion[]): string {
         const points = test.meta.maxPoints ? `(${test.meta.points ?? 0} / ${test.meta.maxPoints} points)` : '';
 
         return [
+            `<a name="${snakeCase(test.title)}"><!-- anchor for linking from the table of contents --></a>`,
+
             `### ${test.title} ${points} [${icon(test)} ${test.status}]`,
 
             test.meta?.description,
@@ -106,9 +113,14 @@ function buildCommandLog(log: VitestReport.RunLog): string {
     return code(`$ ${log.command}\n\n${combinedOutputs}`);
 }
 
+/** Wraps the given string into a Markdown code block */
 const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;
 
+/** Returns an emoji icon based on the test status */
 const icon = (s: { status: string }) => ({ passed: '✅', failed: '❌', skipped: '⚠️' })[s.status] || '⚠️';
+
+/** Converts a string to snake_case. Removes non-alphanumeric characters. */
+const snakeCase = (str: string) => str.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 
 async function main(): Promise<void> {
     const inputPath = process.argv[2];
