@@ -86,7 +86,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
             return await runCmd(runnable);
         }
 
-        if ('name' in runnable && '$run' in runnable) {
+        if ('$run' in runnable) {
             return await runCmd(runnable.$run);
         }
 
@@ -142,10 +142,10 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         } catch (err) {
             // Check if the error was thrown by zx and contains the expected properties
             const isProcessError = (e: unknown): e is ProcessOutput => e !== null && typeof e === 'object' && 'stdout' in e && 'stderr' in e;
+            entry.ok = false;
 
             if (isProcessError(err)) {
                 const p = err as ProcessOutput;
-                entry.ok = false;
                 entry.stdout = p.stdout;
                 entry.stderr = p.stderr;
             }
@@ -164,7 +164,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
  * specified for the runnable, the default timeout from the test suite is used.
  */
 function timeout(runnable: AutogradingTests.Runnable, suite: AutogradingTests.TestSuite): number {
-    const timeout = (typeof runnable === 'object' && 'timeout' in runnable && runnable.timeout) ? runnable.timeout : suite.defaultTimeout;
+    const timeout = (typeof runnable === 'object' && runnable?.timeout) || suite.defaultTimeout;
 
     return 'seconds' in timeout ? timeout.seconds * 1000 : timeout.minutes * 60 * 1000;
 }
