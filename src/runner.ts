@@ -15,60 +15,70 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         cwd: testSuite.cwd ?? process.cwd(),
     });
 
-    toArray(testSuite.beforeAll).forEach(runnable => {
-        test.beforeAll(async () => {
-            await run(runnable);
-        }, timeout(runnable, testSuite));
-    });
+    test.describe(testSuite.name, () => {
 
-    toArray(testSuite.beforeEach).forEach(runnable => {
-        test.beforeEach(async () => {
-            await run(runnable);
-        }, timeout(runnable, testSuite));
-    });
+        test.beforeAll((suite: any) => {
+            suite.meta = {
+                name: testSuite.name,
+                description: testSuite.description
+            };
+        });
 
-    toArray(testSuite.afterAll).forEach(runnable => {
-        test.afterAll(async () => {
-            await run(runnable);
-        }, timeout(runnable, testSuite));
-    });
+        toArray(testSuite.beforeAll).forEach(runnable => {
+            test.beforeAll(async () => {
+                await run(runnable);
+            }, timeout(runnable, testSuite));
+        });
 
-    toArray(testSuite.afterEach).forEach(runnable => {
-        test.afterEach(async () => {
-            await run(runnable);
-        }, timeout(runnable, testSuite));
-    });
+        toArray(testSuite.beforeEach).forEach(runnable => {
+            test.beforeEach(async () => {
+                await run(runnable);
+            }, timeout(runnable, testSuite));
+        });
+
+        toArray(testSuite.afterAll).forEach(runnable => {
+            test.afterAll(async () => {
+                await run(runnable);
+            }, timeout(runnable, testSuite));
+        });
+
+        toArray(testSuite.afterEach).forEach(runnable => {
+            test.afterEach(async () => {
+                await run(runnable);
+            }, timeout(runnable, testSuite));
+        });
 
 
-    testSuite.tests.forEach(testCase => {
-        test(testCase.name, async ({ task: { meta } }) => {
-            meta.maxPoints = testCase.points ?? testSuite.defaultPoints;
-            meta.description = testCase.description;
-            meta.points = 0;
+        testSuite.tests.forEach(testCase => {
+            test(testCase.name, async ({ task: { meta } }) => {
+                meta.maxPoints = testCase.points ?? testSuite.defaultPoints;
+                meta.description = testCase.description;
+                meta.points = 0;
 
-            const logs = meta.logs = [];
-            let output = "";
+                const logs = meta.logs = [];
+                let output = "";
 
-            if (testCase.$setup) {
-                const setup = await runCmd(testCase.$setup, logs);
-                output += setup.toString();
-            }
+                if (testCase.$setup) {
+                    const setup = await runCmd(testCase.$setup, logs);
+                    output += setup.toString();
+                }
 
-            const run = await runCmd(testCase.$run, logs);
-            output += run.toString();
+                const run = await runCmd(testCase.$run, logs);
+                output += run.toString();
 
-            await assertOutput(testCase, output);
+                await assertOutput(testCase, output);
 
-            if (testCase.customGrader) {
-                // if a custom grader is provided, use it to determine the points awarded for the test
-                const { points } = await testCase.customGrader({ logs, self: testCase, runCmd });
-                meta.points = points;
-            } else {
-                // full points awarded if there is no custom grader and the test passed without throwing an error
-                meta.points = meta.maxPoints;
-            }
+                if (testCase.customGrader) {
+                    // if a custom grader is provided, use it to determine the points awarded for the test
+                    const { points } = await testCase.customGrader({ logs, testCase, runCmd, testSuite });
+                    meta.points = points;
+                } else {
+                    // full points awarded if there is no custom grader and the test passed without throwing an error
+                    meta.points = meta.maxPoints;
+                }
 
-        }, timeout(testCase, testSuite));
+            }, timeout(testCase, testSuite));
+        });
     });
 
     /**
@@ -79,7 +89,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
      */
     async function run(runnable: AutogradingTests.Runnable): Promise<ProcessOutput> {
         if (typeof runnable === 'function') {
-            return await runnable();
+            return await runnable({ runCmd, testSuite });
         }
 
         if (typeof runnable === 'string') {

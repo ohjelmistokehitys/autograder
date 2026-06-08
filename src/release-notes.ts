@@ -44,9 +44,12 @@ function buildHead(summaries: Summary[], results: VitestReport.VitestResults) {
         passed: acc.passed + (cur.passed ? 1 : 0)
     }), { points: 0, maxPoints: 0, passed: 0 });
 
-    let lines = [`# Autograding report`,
-        `Score: **${scores.points} / ${scores.maxPoints}**`,
-        `Passed: **${scores.passed} / ${summaries.length}**`,
+    // Use the name of the first test as the title of the release notes, if available. Otherwise, use a generic title.
+    let title = results.testResults?.at(0)?.assertionResults?.at(0)?.ancestorTitles?.join(' » ') || 'Autograding Report';
+
+    let lines = [`# ${title}`,
+    `Score: **${scores.points} / ${scores.maxPoints}**`,
+    `Passed: **${scores.passed} / ${summaries.length}**`,
     ];
 
     // If there is a message at the suite level, include it in the release notes.
@@ -93,7 +96,7 @@ function buildLog(testCases: VitestReport.VitestAssertion[]): string {
 
             `### ${test.title} ${points} [${icon(test)} ${test.status}]`,
 
-            test.meta?.description,
+            trimIndentation(test.meta.description || ''),
 
             commandLogs.length > 0 ? commandLogs.join('\n\n') : 'No logs available.',
 
@@ -121,6 +124,9 @@ const icon = (s: { status: string }) => ({ passed: '✅', failed: '❌', skipped
 
 /** Converts a string to snake_case. Removes non-alphanumeric characters. */
 const snakeCase = (str: string) => str.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+/** Trims indentation from all lines in a string */
+const trimIndentation = (str: string) => str.trim().split('\n').map(line => line.trim()).join('\n');
 
 async function main(): Promise<void> {
     const inputPath = process.argv[2];

@@ -5,6 +5,9 @@ runSuite({
     defaultTimeout: { seconds: 5 },
     defaultPoints: 1,
 
+    name: "Example test suite",
+    description: "This is an example test suite to demonstrate the features of the autograder framework. It includes various types of tests and hooks to show how they can be used in practice.",
+
     // The lifecycle hooks can be either single operations or arrays.
     // Both JavaScript functions and shell commands are supported.
     // Also, beforeEach and afterAll/afterEach hooks are also supported.
@@ -21,7 +24,11 @@ runSuite({
     tests: [
         {
             name: "Simple Hello World",
-            description: "Runs the hello world script and checks its output.",
+            description: `
+                Runs the hello world script and checks its output.
+
+                <code>HTML</code> and **Markdown** formatting is supported in the descriptions for test cases, although you should not abuse this feature in real life.
+            `,
             $run: "echo 'Hello world!'",
             contains: "Hello world!",
             points: 10
@@ -61,21 +68,27 @@ runSuite({
             points: 60,
             timeout: { minutes: 1 }
         }, {
-            name: "Custom grader function",
-            description: "This test uses a custom grader function to determine the points awarded. Each alphabet in the output earns one point.",
-            $run: "echo 'A B C D E F G'",
-            points: 26,
-            customGrader: async ({ logs }) => {
-                let points = 0;
-                const outputs = logs.map(log => [log.stdout, log.stderr]).flat().join("\n");
+            name: "Custom grader function and Markdown support in descriptions",
+            description: `
+                This test uses a custom grader function to determine the points awarded. The custom grader actually just gives *random* points and logs them in the test logs.
 
-                // This is merely an example. A real grader could check different types of outputs or verify the
-                // amount of passed unit tests vs. failed tests, etc.
-                for (const char of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-                    if (outputs.includes(char)) {
-                        points += 1;
-                    }
-                }
+                In a *real* autograder, you would inspect the logs and other context within the custom grader to determine the points based on more complex logic than just whether the test passed or not.
+            `,
+            $run: "echo 'Random points for this example!'",
+            points: 26,
+            customGrader: async ({ logs, testCase, testSuite }) => {
+
+                // The hooks can reference the context, including the test suite and test case. This allows for using dynamic values.
+                const points = Math.ceil((testCase.points ?? testSuite.defaultPoints) * Math.random());
+
+                // New log entries can be added within the custom grader, and will be included in the final report. This allows for providing detailed feedback to students.
+                logs.push({
+                    command: "Custom grader logic",
+                    stdout: `Awarded ${points} points based on random grading logic.`,
+                    ok: true
+                });
+
+                // In a real grader, you would inspect the logs and other context to determine the points.
                 return { points };
             }
         }
