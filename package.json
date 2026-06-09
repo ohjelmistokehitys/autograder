@@ -2,7 +2,7 @@
   "scripts": {
     "test": "vitest run",
     "report": "npx --yes tsx src/reporter.ts results-vitest.json result.json",
-    "release-notes": "npx --yes tsx src/release-notes.ts results-vitest.json release-notes.md"
+    "release-notes": "npx --yes tsx src/release-notes.ts vitest-output.json release-notes.md"
   },
   "dependencies": {
     "vitest": "^4.1.7",
