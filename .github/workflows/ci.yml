@@ -24,9 +24,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Generate release notes
-        run: npm run release-notes
-
       - name: Create release tag
         id: tag
         run: |

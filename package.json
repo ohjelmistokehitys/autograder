@@ -1,7 +1,6 @@
 {
   "scripts": {
-    "test": "vitest run",
-    "release-notes": "npx --yes tsx src/release-notes.ts vitest-output.json release-notes.md"
+    "test": "vitest run"
   },
   "dependencies": {
     "vitest": "^4.1.7",
