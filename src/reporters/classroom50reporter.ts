@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { TaskMeta } from 'vitest';
 import { TestCase, TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { ClassroomJSON } from './types';
+import { ClassroomJSON } from '../types';
 
 /** Default output file, if none is specified in the reporter options. */
 const DEFAULT_OUTPUT_FILE = 'result.json';
@@ -15,6 +15,15 @@ export type ReporterOptions = {
     outputFile?: string
 }
 
+/**
+ * Generates a test report in the format expected by Classroom 50. See
+ * https://github.com/foundation50/classroom50/wiki/Autograders#the-resultjson-contract
+ *
+ * The report is written to a file specified in the reporter options, or `result.json` by default.
+ *
+ * The reporter requires environment variables from the runner. See
+ * https://github.com/foundation50/classroom50/wiki/Autograders#contract
+ */
 export default class Classroom50Reporter implements Reporter {
     private readonly outputFile;
     private ctx!: Vitest;

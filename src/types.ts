@@ -5,43 +5,59 @@ declare module 'vitest' {
 
     // The runner adds metadata to the Vitest output in each test,
     // so we extend the type definition to include those fields:
-    interface TaskMeta extends VitestReport.TaskMeta {
+    interface TaskMeta extends TestMeta {
+
     }
 }
 
-export namespace VitestReport {
-
-    /** The format for the Vitest JSON report. */
-    export type VitestResults = {
-        testResults?: Array<{
-            assertionResults?: VitestAssertion[];
-            message: string;
-        }>;
-    };
-
-    export type VitestAssertion = {
-        title: string;
-        status: string;
-        failureMessages: string[];
-        ancestorTitles: string[];
-        meta: TaskMeta;
-    };
-
-    export type RunLog = {
+export type TestMeta = {
+    description?: string;
+    maxScore?: number;
+    score?: number;
+    logs?: {
         command: string;
         ok: boolean;
 
         stdout?: string;
         stderr?: string;
-    };
-
-    export type TaskMeta = {
-        description: string;
-        maxScore: number;
-        score?: number;
-        logs?: VitestReport.RunLog[];
-    };
+    }[];
 }
+
+export type RunLog = NonNullable<TestMeta["logs"]>[number];
+
+// export namespace VitestReport {
+
+//     /** The format for the Vitest JSON report. */
+//     export type VitestResults = {
+//         testResults?: Array<{
+//             assertionResults?: VitestAssertion[];
+//             message: string;
+//         }>;
+//     };
+
+//     export type VitestAssertion = {
+//         title: string;
+//         status: string;
+//         failureMessages: string[];
+//         ancestorTitles: string[];
+//         meta: TaskMeta;
+//     };
+
+//     export type RunLog = {
+//         command: string;
+//         ok: boolean;
+
+//         stdout?: string;
+//         stderr?: string;
+//     };
+
+//     export type TaskMeta = {
+//         description: string;
+//         maxScore: number;
+//         score?: number;
+//         logs?: VitestReport.RunLog[];
+//     };
+// }
 
 export namespace ClassroomJSON {
     /**
@@ -160,7 +176,7 @@ export namespace AutogradingTests {
          * If the test should be failed, the grader should throw an error. Vitest `expect` assertions are
          * recommended for throwing errors, as they will be consistent with the rest of the checks.
          */
-        customGrader?: (context: TestContext) => Promise<Pick<TaskMeta, 'score'>>;
+        customGrader?: (context: TestContext & { logs: RunLog[] }) => Promise<Pick<TaskMeta, 'score'>>;
     }
 
     /**
@@ -170,7 +186,7 @@ export namespace AutogradingTests {
      */
     export type ExecutionContext = {
         /** Runs the given command using a configured environment and working directory. */
-        runCmd: (cmd: string, logs?: VitestReport.RunLog[]) => Promise<ProcessOutput>,
+        runCmd: (cmd: string, logs: TaskMeta["logs"]) => Promise<ProcessOutput>,
 
         /** The test suite, for dynamically referencing fields. */
         testSuite: TestSuite
@@ -178,7 +194,7 @@ export namespace AutogradingTests {
 
     export type TestContext = ExecutionContext & {
         /** Logs for inspecting the test execution and for adding new entries. */
-        logs: VitestReport.RunLog[],
+        logs: TaskMeta["logs"],
 
         /** The test case itself, for dynamically referencing fields. */
         testCase: TestCase

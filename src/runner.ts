@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ProcessOutput, $ as zx } from 'zx';
-import { AutogradingTests, VitestReport } from './types';
+import { AutogradingTests, RunLog } from './types';
 
 
 /**
@@ -15,14 +15,12 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         cwd: testSuite.cwd ?? process.cwd(),
     });
 
-    test.describe(testSuite.name, () => {
-
-        test.beforeAll((suite: any) => {
-            suite.meta = {
-                name: testSuite.name,
-                description: testSuite.description
-            };
-        });
+    test.describe(
+        testSuite.name, {
+        meta: {
+            description: testSuite.description
+        }
+    }, () => {
 
         toArray(testSuite.beforeAll).forEach(runnable => {
             test.beforeAll(async () => {
@@ -137,8 +135,8 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
      *
      * Errors are re-thrown after logging, so that they can be handled by the caller (to mark a test as failed).
      */
-    async function runCmd(cmd: string, logs?: VitestReport.RunLog[]): Promise<ProcessOutput> {
-        const entry: VitestReport.RunLog = {
+    async function runCmd(cmd: string, logs?: RunLog[]): Promise<ProcessOutput> {
+        const entry: RunLog = {
             command: cmd,
             ok: true
         };
