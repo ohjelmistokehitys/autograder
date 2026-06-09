@@ -24,9 +24,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Generate report
-        run: npm run report
-
       - name: Generate release notes
         run: npm run release-notes
 
@@ -44,4 +41,4 @@ jobs:
             --title "${{ steps.tag.outputs.tag }}" \
             --notes-file release-notes.md \
             result.json \
-            results-vitest.json
+            vitest-output.json
