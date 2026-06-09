@@ -37,8 +37,8 @@ export namespace VitestReport {
 
     export type TaskMeta = {
         description: string;
-        maxPoints: number;
-        points?: number;
+        maxScore: number;
+        score?: number;
         logs?: VitestReport.RunLog[];
     };
 }
@@ -109,8 +109,8 @@ export namespace AutogradingTests {
         /** Timeout for a test case or a lifecycle hook */
         defaultTimeout: Timeout;
 
-        /** Default points for a single test case */
-        defaultPoints: number;
+        /** Default score for a single test case */
+        defaultScore: number;
 
         name: string,
         description: string,
@@ -140,7 +140,7 @@ export namespace AutogradingTests {
     export type TestCase = RunnableObj & {
         description: string;
         $setup?: string;
-        points?: number;
+        score?: number;
 
         /** A string or array of strings that the output must contain for the test to pass. */
         contains?: string | string[];
@@ -152,7 +152,7 @@ export namespace AutogradingTests {
         $compareRun?: Runnable;
 
         /**
-         * A custom grader function that receives the test context and returns the points awarded. For the
+         * A custom grader function that receives the test context and returns the scores awarded. For the
          * custom grader to be invoked, other all other checks must pass and the setup and run commands
          * must execute successfully.
          *
@@ -160,7 +160,7 @@ export namespace AutogradingTests {
          * If the test should be failed, the grader should throw an error. Vitest `expect` assertions are
          * recommended for throwing errors, as they will be consistent with the rest of the checks.
          */
-        customGrader?: (context: TestContext) => Promise<Pick<TaskMeta, 'points'>>;
+        customGrader?: (context: TestContext) => Promise<Pick<TaskMeta, 'score'>>;
     }
 
     /**

@@ -51,9 +51,9 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
 
         testSuite.tests.forEach(testCase => {
             test(testCase.name, async ({ task: { meta } }) => {
-                meta.maxPoints = testCase.points ?? testSuite.defaultPoints;
+                meta.maxScore = testCase.score ?? testSuite.defaultScore;
                 meta.description = testCase.description;
-                meta.points = 0;
+                meta.score = 0;
 
                 const logs = meta.logs = [];
                 let output = "";
@@ -70,11 +70,11 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
 
                 if (testCase.customGrader) {
                     // if a custom grader is provided, use it to determine the points awarded for the test
-                    const { points } = await testCase.customGrader({ logs, testCase, runCmd, testSuite });
-                    meta.points = points;
+                    const { score } = await testCase.customGrader({ logs, testCase, runCmd, testSuite });
+                    meta.score = score;
                 } else {
                     // full points awarded if there is no custom grader and the test passed without throwing an error
-                    meta.points = meta.maxPoints;
+                    meta.score = meta.maxScore;
                 }
 
             }, timeout(testCase, testSuite));

@@ -7,8 +7,8 @@ type Summary = {
     name: string;
     passed: boolean;
     status: string;
-    points: number;
-    maxPoints: number;
+    score: number;
+    maxScore: number;
 };
 
 /**
@@ -24,8 +24,8 @@ function buildReleaseNotes(results: VitestReport.VitestResults) {
         name: assertion.title,
         passed: assertion.status === 'passed',
         status: assertion.status,
-        points: assertion.meta?.points ?? 0,
-        maxPoints: assertion.meta?.maxPoints ?? 0
+        score: assertion.meta?.score ?? 0,
+        maxScore: assertion.meta?.maxScore ?? 0
     }));
 
     const head = buildHead(summaries, results);
@@ -39,16 +39,16 @@ function buildReleaseNotes(results: VitestReport.VitestResults) {
 function buildHead(summaries: Summary[], results: VitestReport.VitestResults) {
 
     const scores = summaries.reduce((acc, cur) => ({
-        points: acc.points + cur.points,
-        maxPoints: acc.maxPoints + cur.maxPoints,
+        score: acc.score + cur.score,
+        maxScore: acc.maxScore + cur.maxScore,
         passed: acc.passed + (cur.passed ? 1 : 0)
-    }), { points: 0, maxPoints: 0, passed: 0 });
+    }), { score: 0, maxScore: 0, passed: 0 });
 
     // Use the name of the first test as the title of the release notes, if available. Otherwise, use a generic title.
     let title = results.testResults?.at(0)?.assertionResults?.at(0)?.ancestorTitles?.join(' » ') || 'Autograding Report';
 
     let lines = [`# ${title}`,
-    `Score: **${scores.points} / ${scores.maxPoints}**`,
+    `Score: **${scores.score} / ${scores.maxScore}**`,
     `Passed: **${scores.passed} / ${summaries.length}**`,
     ];
 
@@ -77,7 +77,7 @@ function buildTable(summaries: Summary[]) {
                 icon(test),
                 `[${test.name}](#${snakeCase(test.name)})`, // link to the log section for this test case
                 test.status,
-                `${test.points} / ${test.maxPoints}`
+                `${test.score} / ${test.maxScore}`
             ])
             .map(columns => "| " + columns.join(' | ') + " |")
     );
@@ -89,12 +89,12 @@ function buildLog(testCases: VitestReport.VitestAssertion[]): string {
 
     const testCaseLogs = testCases.map(test => {
         const commandLogs = test.meta?.logs ? test.meta.logs.map(buildCommandLog) : [];
-        const points = test.meta.maxPoints ? `(${test.meta.points ?? 0} / ${test.meta.maxPoints} points)` : '';
+        const score = test.meta.maxScore ? `(${test.meta.score ?? 0} / ${test.meta.maxScore} points)` : '';
 
         return [
             `<a name="${snakeCase(test.title)}"><!-- anchor for linking from the table of contents --></a>`,
 
-            `### ${test.title} ${points} [${icon(test)} ${test.status}]`,
+            `### ${test.title} ${score} [${icon(test)} ${test.status}]`,
 
             trimIndentation(test.meta.description || ''),
 

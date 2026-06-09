@@ -19,7 +19,7 @@ function buildScoreJson(vitest: VitestReport.VitestResults): ClassroomJSON.Class
 
     // Map each Vitest test to a Classroom50 test.
     const tests: ClassroomJSON.ClassroomTest[] = assertions.map((assertion) => {
-        const maxScore = toNumber(assertion.meta?.maxPoints);
+        const maxScore = toNumber(assertion.meta?.score);
         const passed = assertion.status === 'passed';
 
         return {

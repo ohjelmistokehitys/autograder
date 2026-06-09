@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "vitest run --reporter=default --reporter=json --output-file=results-vitest.json",
+    "test": "vitest run",
     "report": "npx --yes tsx src/reporter.ts results-vitest.json result.json",
     "release-notes": "npx --yes tsx src/release-notes.ts results-vitest.json release-notes.md"
   },
