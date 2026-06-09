@@ -1,13 +1,17 @@
 {
+  "name": "autograder-utilities",
   "scripts": {
     "test": "vitest run"
   },
   "dependencies": {
-    "vitest": "^4.1.7",
-    "zx": "lite"
+    "vitest": "^4.1.7"
   },
   "type": "module",
   "devDependencies": {
     "@types/node": "^25.9.1"
-  }
+  },
+  "workspaces": [
+    "autograding-runner",
+    "autograding-reporters"
+  ]
 }

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { TestModule, TestSuite, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { RunLog } from '../types';
+import { RunLog } from '../../shared/types';
 import { TestResult } from './test-result';
 
 /** Default output file, if none is specified in the reporter options. */

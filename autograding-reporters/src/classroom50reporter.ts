@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { ClassroomJSON } from '../types';
+import { ClassroomJSON } from '../../shared/types';
 import { TestResult } from './test-result';
 
 /** Default output file, if none is specified in the reporter options. */

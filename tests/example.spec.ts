@@ -1,4 +1,4 @@
-import { runSuite } from "../src/runner.js";
+import { runSuite } from "../autograding-runner/src/runner.js";
 
 runSuite({
 

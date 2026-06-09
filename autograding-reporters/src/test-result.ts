@@ -1,6 +1,6 @@
 import { TaskMeta } from "vitest";
 import { TestCase } from "vitest/node";
-import { ClassroomJSON, RunLog } from "../types";
+import { ClassroomJSON, RunLog } from "../../shared/types";
 
 /** The default score to be awarded for each test case, if a test metadata doesn't specify a score. */
 const DEFAULT_SCORE = 1;

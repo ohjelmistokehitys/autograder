@@ -1,0 +1,15 @@
+{
+  "name": "@ohjelmistokehitys/autograding-reporters",
+  "version": "1.0.0",
+  "description": "These custom Vitest reporters take the test results and convert them into JSON and markdown formats that can be used in automated grading pipelines and GitHub release notes.",
+  "homepage": "https://github.com/ohjelmistokehitys/autograder#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohjelmistokehitys/autograder.git"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vitest"
+  },
+  "peerDependencies": {}
+}

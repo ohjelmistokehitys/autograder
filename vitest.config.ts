@@ -4,8 +4,8 @@ export default defineConfig({
     test: {
         reporters: [
             'default',
-            ['./src/reporters/classroom50reporter.ts', { outputFile: 'result.json' }],
-            ['./src/reporters/release-notes-reporter.ts', { outputFile: 'release-notes.md' }],
+            ['./autograding-reporters/src/classroom50reporter.ts', { outputFile: 'result.json' }],
+            ['./autograding-reporters/src/release-notes-reporter.ts', { outputFile: 'release-notes.md' }],
             ['json', { outputFile: 'vitest-output.json' }]
         ],
     },
