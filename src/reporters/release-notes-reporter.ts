@@ -1,14 +1,13 @@
 import fs from 'node:fs';
-import { TaskMeta } from 'vitest';
-import { TestCase, TestModule, TestSuite, Vitest } from 'vitest/node';
+import { TestModule, TestSuite, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
 import { RunLog } from '../types';
+import { TestResult } from './test-result';
 
 /** Default output file, if none is specified in the reporter options. */
 const DEFAULT_OUTPUT_FILE = 'release-notes.md';
 
-/** The default score to be awarded for each test case, if a test metadata doesn't specify a score. */
-const DEFAULT_SCORE = 1;
+
 
 export type ReporterOptions = {
     /** The file path where the test results will be written. */
@@ -32,155 +31,102 @@ export default class ReleaseNotesReporter implements Reporter {
     }
 
     async onTestRunEnd(testModules: ReadonlyArray<TestModule>) {
-        const output = MarkdownReport.build(testModules)
+        const output = new MarkdownReport(testModules).build();
 
         this.ctx.logger.log(`Writing results to ${this.outputFile}`);
         fs.writeFileSync(this.outputFile, output, 'utf-8');
     }
-
-
-
 }
-
-const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);
-
 
 /**
- * A wrapper around Vitest's TestCase that provides access to properties and methods for generating test reports.
+ * Class for generating a markdown report from a test run.
  */
-class TestResult {
-
-    constructor(readonly test: TestCase) { }
-
-    /**
-     * The maximum score for the test case. If a max score was added to the test metadata during
-     * test execution, that score is used. Otherwise, the default score is used.
-     */
-    get maxScore(): number {
-        return this.meta.maxScore ?? DEFAULT_SCORE;
-    }
-
-    get name() {
-        return this.test.name;
-    }
-
-    get description() {
-        return this.test.meta()?.description ?? '';
-    }
-
-    get icon() {
-        return ({ passed: '✅', failed: '❌', skipped: '⚠️', pending: '⏳' })[this.status] || '⚠️';
-    }
-
-    /**
-     * The score for the test case. If a score was added to the test metadata during test execution,
-     * that score is used. Otherwise, if the test passed without throwing an error, the default score
-     * is awarded. If no score was added to the metadata and the test failed, 0 points are awarded.
-     */
-    get score(): number {
-        return this.meta.score ?? (this.passed ? DEFAULT_SCORE : 0);
-    }
-
-    get passed(): boolean {
-        return this.status === 'passed';
-    }
-
-    get logs(): RunLog[] {
-        return this.meta.logs ?? [];
-    }
-
-    get failureMessages(): string[] {
-        return this.test.result().errors?.map(e => e.stack?.split('\n')[0] || e.message) || [];
-    }
-
-    /** An alphanumeric identifier for the test case, suitable for use in URLs or anchors. */
-    get anchor() {
-        return this.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    }
-
-    get status() {
-        return this.test.result().state;
-    }
-
-    private get meta(): TaskMeta {
-        return this.test.meta() ?? {};
-    }
-}
-
-// FIXME: Remove static keywords
 class MarkdownReport {
+    readonly suite: TestSuite;
+    readonly testResults: TestResult[];
 
-    static build(testModules: ReadonlyArray<TestModule>): string {
-        if (testModules.length === 0) {
-            return '# No tests were run';
-        }
+    constructor(testModules: ReadonlyArray<TestModule>) {
+        this.suite = [...testModules[0].children.suites()][0];
 
-        const suite = [...testModules[0].children.suites()][0];
-
-        // combine tests from all suites into one arrray:
-        const testResults = testModules.flatMap(
+        // combine TestCases from all suites into one arrray of TestResult objects
+        this.testResults = testModules.flatMap(
             (module) => [...module.children.allTests()]
         ).map(test => new TestResult(test));
-
-        const head = this.buildHead(suite, testResults);
-        const table = this.buildTable(testResults);
-        const reports = this.buildReports(testResults);
-
-        return [head, table, reports].join('\n\n');
     }
 
+    /**
+     * Builds the full markdown report, including a summary of test results and detailed sections for each test case.
+     */
+    build(): string {
+        return [
+            this.headLines(),
+            this.summaryLines(),
+            this.testCaseLines()
+        ].flat().join('\n\n');
+    }
 
-    static buildHead(suite: TestSuite, testResults: TestResult[]) {
-        const name = suite.name;
-        const { description } = suite.meta();
+    /**
+     * Builds the header section of the markdown report, including potential suite level errors.
+     */
+    headLines(): string[] {
+        const name = this.suite.name;
+        const { description } = this.suite.meta();
 
         const scores = {
-            score: sum(testResults.map(result => result.score)),
-            maxScore: sum(testResults.map(result => result.maxScore)),
-            passed: testResults.filter(result => result.passed).length
+            score: sum(this.testResults.map(result => result.score)),
+            maxScore: sum(this.testResults.map(result => result.maxScore)),
+            passed: this.testResults.filter(result => result.passed).length
         };
 
-        let lines = [`# ${name}`,
-        description ? trimIndentation(description) : undefined,
+        let lines = [
+            `# ${name}`,
+            trimIndentation(description ?? ''),
             '----',
-        `Score: **${scores.score} / ${scores.maxScore}**`,
-        `Passed: **${scores.passed} / ${testResults.length}**`,
+            `Score: **${scores.score} / ${scores.maxScore}**`,
+            `Passed: **${scores.passed} / ${this.testResults.length}**`,
             '----',
         ];
 
         // if there were any suite level errors that prevented tests from running, include them in the report
-        if (suite.errors().length > 0) {
+        if (this.suite.errors().length > 0) {
             lines.push(
                 `## Errors that prevented tests from running`,
-                ...suite.errors().map(err => code(err.message))
+                ...this.suite.errors().map(err => code(`❌ ${err.message}`))
             );
         }
 
-        return lines.join(`\n\n`);
+        return lines;
     }
 
-    static buildTable(testResults: TestResult[]) {
-        const titles = [
+    /**
+     * Builds the summary section of the markdown report, including a table of all test cases.
+     */
+    summaryLines(): string[] {
+        const header = [
             `| Ok? | Test name | Status | Points |`,
             `| --- | --- | --- | --- |`
         ];
 
-        const rows = testResults
+        const rows = this.testResults
             .map(test => [
                 test.icon,
                 `[${test.name}](#${test.anchor})`, // link to the log section for this test case
                 test.status,
                 `${test.score} / ${test.maxScore}`
             ])
-            .map(columns => "| " + columns.join(' | ') + " |")
+            .map(row => `| ${row.join(' | ')} |`);
 
-        return `## Summary\n\n` + titles.concat(rows).join('\n');
+        const table = [...header, ...rows].join('\n');
+
+        return [`## Summary`, table];
     }
 
-    static buildReports(testCases: TestResult[]): string {
-
-        const testCaseReports = testCases.map(test => {
-            const commandLogs = test.logs.map(MarkdownReport.buildCommandLog);
+    /**
+     * Builds the detailed section for each test case.
+     */
+    testCaseLines(): string[] {
+        const testCaseReports = this.testResults.map(test => {
+            const commandLogs = test.logs.map((log) => this.commandLog(log));
             const score = test.maxScore ? `(${test.score ?? 0} / ${test.maxScore} points)` : '';
 
             return [
@@ -192,16 +138,18 @@ class MarkdownReport {
 
                 ...commandLogs,
 
-                ...test.failureMessages.map(failure => code("❌ " + failure))
+                ...test.failureMessages.map(failure => code(`❌ ${failure}`))
             ]
-                .filter(line => line) // exclude empty lines
-                .join('\n\n');
+                .filter(line => line) // exclude potential empty lines
         });
 
-        return ["## Test cases", ...testCaseReports].join('\n\n');
+        return ["## Test cases", ...testCaseReports.flat()];
     }
 
-    static buildCommandLog(log: RunLog): string {
+    /**
+     * Builds a code block for the given command log, including the actual command and its outputs.
+     */
+    private commandLog(log: RunLog): string {
         // Combine stdout and stderr, but only if they exist
         const combinedOutputs = [log.stdout?.trim(), log.stderr?.trim()].filter(s => s);
 
@@ -211,16 +159,13 @@ class MarkdownReport {
 
         return code([`$ ${log.command}`, ...combinedOutputs].join('\n\n'));
     }
-
-
 }
 
 /** Wraps the given string into a Markdown code block */
-function code(text: string) {
-    return `\`\`\`\n${text}\n\`\`\``;
-}
+const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;
 
 /** Trims indentation from all lines in a string */
-function trimIndentation(str: string) {
-    return str.trim().split('\n').map(line => line.trim()).join('\n');
-}
+const trimIndentation = (str: string) => str.trim().split('\n').map(line => line.trim()).join('\n');
+
+/** Sums an array of numbers. */
+const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);

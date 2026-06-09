@@ -1,14 +1,11 @@
 import fs from 'node:fs';
-import { TaskMeta } from 'vitest';
-import { TestCase, TestModule, Vitest } from 'vitest/node';
+import { TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
 import { ClassroomJSON } from '../types';
+import { TestResult } from './test-result';
 
 /** Default output file, if none is specified in the reporter options. */
 const DEFAULT_OUTPUT_FILE = 'result.json';
-
-/** The default score to be awarded for each test case, if a test metadata doesn't specify a score. */
-const DEFAULT_SCORE = 1;
 
 export type ReporterOptions = {
     /** The file path where the test results will be written. */
@@ -40,7 +37,6 @@ export default class Classroom50Reporter implements Reporter {
         const vitestTests = testModules.flatMap(module => [...module.children.allTests()]);
 
         const testResults = vitestTests.map(test => new TestResult(test));
-
 
         const output: ClassroomJSON.ClassroomReport = {
             ...this.getAssignmentEnvironment(),
@@ -84,50 +80,3 @@ export default class Classroom50Reporter implements Reporter {
 }
 
 const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);
-
-class TestResult {
-    constructor(readonly test: TestCase) { }
-
-    /**
-     * Returns a single test case in Classroom 50 format.
-     */
-    get json(): ClassroomJSON.ClassroomTest {
-        return {
-            'test-name': this.test.name,
-            'passed': this.passed,
-            'score': this.score,
-            'max-score': this.maxScore
-        };
-    }
-
-    /**
-     * The maximum score for the test case. If a max score was added to the test metadata during
-     * test execution, that score is used. Otherwise, the default score is used.
-     */
-    get maxScore(): number {
-        return typeof this.meta.maxScore === 'number' ? this.meta.maxScore : DEFAULT_SCORE;
-    }
-
-    /**
-     * The score for the test case. If a score was added to the test metadata during test execution,
-     * that score is used. Otherwise, if the test passed without throwing an error, the default score
-     * is awarded. If no score was added to the metadata and the test failed, 0 points are awarded.
-     */
-    get score(): number {
-        if (typeof this.meta.score === 'number') {
-            return this.meta.score;
-        }
-
-        return this.passed ? DEFAULT_SCORE : 0;
-    }
-
-    private get passed(): boolean {
-        return this.test.result().state === 'passed';
-    }
-
-    private get meta(): TaskMeta {
-        return this.test.meta() ?? {};
-    }
-}
-
-
