@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -21,8 +21,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests
-        run: npm test
+      - name: Test autograding runner
+        run: npm run test:runner
+
+      - name: Test autograding reporters
+        run: npm run test:reporters
+
+      - name: Test example suite and produce report files
+        run: npm run test:example
 
       - name: Create release tag
         id: tag

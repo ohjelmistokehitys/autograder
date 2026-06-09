@@ -2,11 +2,18 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { $, runnerEnv } from "./utils";
 
+/**
+ * This test suite runs a single example test suite in `tests/e2e/examples`.
+ * The vitest configuration should be set up to use the autograding reporters
+ * when running this test suite. After the test suite runs, we check that the
+ * reporters generated the expected JSON and markdown report files with the
+ * expected content based on the test results and environment variables.
+ */
 describe('generating reports for suites in examples folder', async () => {
 
     const processOutput = await $`npx vitest run tests/e2e/examples/complex.test.ts`;
 
-    describe('classroom 50 reporter', async () => {
+    describe('classroom 50 JSON reporter', async () => {
 
         const result = readFileSync("result.json", "utf-8");
         const reportJson = JSON.parse(result);
