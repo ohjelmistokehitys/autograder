@@ -8,8 +8,5 @@
     "url": "git+https://github.com/ohjelmistokehitys/autograder.git"
   },
   "type": "module",
-  "scripts": {
-    "test": "vitest"
-  },
   "peerDependencies": {}
 }

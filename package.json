@@ -1,7 +1,9 @@
 {
   "name": "autograder-utilities",
   "scripts": {
-    "test": "vitest run"
+    "test:example": "vitest run tests/example.spec.ts",
+    "test:runner": "vitest run tests/e2e/autograding-runner.test.ts --reporter=default",
+    "test:reporters": "vitest run tests/e2e/autograding-reporters.test.ts --reporter=default"
   },
   "dependencies": {
     "vitest": "^4.1.7"

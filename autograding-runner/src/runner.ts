@@ -8,8 +8,12 @@ import { AutogradingTests, RunLog } from '../../shared/types';
 */
 export function runSuite(testSuite: AutogradingTests.TestSuite): void {
     const $: typeof zx = zx({
-        // pass all environment variables to the commands being executed
-        env: process.env,
+        /*
+         * Pass environment variables to the commands being executed. Include NO_COLOR and CI to make
+         * sure the output is consistent and does not contain color codes or other formatting that
+         * might interfere with parsing the output in the test cases
+         */
+        env: Object.assign({}, process.env, { NO_COLOR: 'true', CI: 'true' }),
 
         // change the working directory to the suite's cwd if specified
         cwd: testSuite.cwd ?? process.cwd(),
