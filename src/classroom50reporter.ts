@@ -4,25 +4,23 @@ import { TestCase, TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
 import { ClassroomJSON } from './types';
 
+/** Default output file, if none is specified in the reporter options. */
 const DEFAULT_OUTPUT_FILE = 'result.json';
+
+/** The default score to be awarded for each test case, if a test metadata doesn't specify a score. */
 const DEFAULT_SCORE = 1;
 
 export type ReporterOptions = {
     /** The file path where the test results will be written. */
-    outputFile?: string,
-
-    /** The default score to be awarded for each test case, if no score is specified. */
-    defaultScore?: number
+    outputFile?: string
 }
 
 export default class Classroom50Reporter implements Reporter {
     private readonly outputFile;
-    private readonly defaultScore;
     private ctx!: Vitest;
 
     constructor(options: ReporterOptions) {
         this.outputFile = options.outputFile ?? DEFAULT_OUTPUT_FILE;
-        this.defaultScore = options.defaultScore ?? DEFAULT_SCORE;
     }
 
     onInit(vitest: Vitest) {
@@ -32,7 +30,7 @@ export default class Classroom50Reporter implements Reporter {
     async onTestRunEnd(testModules: ReadonlyArray<TestModule>) {
         const vitestTests = testModules.flatMap(module => [...module.children.allTests()]);
 
-        const testResults = vitestTests.map(test => new TestResult(test, this.defaultScore));
+        const testResults = vitestTests.map(test => new TestResult(test));
 
 
         const output: ClassroomJSON.ClassroomReport = {
@@ -79,7 +77,7 @@ export default class Classroom50Reporter implements Reporter {
 const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);
 
 class TestResult {
-    constructor(readonly test: TestCase, readonly defaultScore: number) { }
+    constructor(readonly test: TestCase) { }
 
     /**
      * Returns a single test case in Classroom 50 format.
@@ -98,7 +96,7 @@ class TestResult {
      * test execution, that score is used. Otherwise, the default score is used.
      */
     get maxScore(): number {
-        return typeof this.meta.maxScore === 'number' ? this.meta.maxScore : this.defaultScore;
+        return typeof this.meta.maxScore === 'number' ? this.meta.maxScore : DEFAULT_SCORE;
     }
 
     /**
@@ -111,10 +109,7 @@ class TestResult {
             return this.meta.score;
         }
 
-        if (this.passed) {
-            return this.defaultScore;
-        }
-        return 0;
+        return this.passed ? DEFAULT_SCORE : 0;
     }
 
     private get passed(): boolean {
