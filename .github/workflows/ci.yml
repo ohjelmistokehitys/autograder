@@ -51,6 +51,9 @@ jobs:
         with:
           node-version: latest
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Build the autograder package
         run: npm run build
 
