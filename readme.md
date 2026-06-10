@@ -4,9 +4,9 @@ This repository contains a small TypeScript-based autograding toolkit built on t
 
 It provides three pieces that work together:
 
-1. A command-driven test runner for writing autograding specs in Vitest.
-2. A custom Vitest reporter that writes Classroom50-compatible `result.json` output.
-3. A custom Vitest reporter that writes human-readable `release-notes.md` feedback.
+1. A command-driven [test runner](./src/runner/runner.ts) for writing autograding specs in Vitest.
+2. A custom [Vitest reporter that writes Classroom50-compatible](./src/reporters/classroom-json.ts) `result.json` output.
+3. A custom [Vitest reporter that writes human-readable](./src/reporters/release-notes.ts) `release-notes.md` feedback.
 
 Both output files are generated during the Vitest run itself.
 

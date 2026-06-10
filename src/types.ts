@@ -25,39 +25,6 @@ export type TestMeta = {
 
 export type RunLog = NonNullable<TestMeta["logs"]>[number];
 
-// export namespace VitestReport {
-
-//     /** The format for the Vitest JSON report. */
-//     export type VitestResults = {
-//         testResults?: Array<{
-//             assertionResults?: VitestAssertion[];
-//             message: string;
-//         }>;
-//     };
-
-//     export type VitestAssertion = {
-//         title: string;
-//         status: string;
-//         failureMessages: string[];
-//         ancestorTitles: string[];
-//         meta: TaskMeta;
-//     };
-
-//     export type RunLog = {
-//         command: string;
-//         ok: boolean;
-
-//         stdout?: string;
-//         stderr?: string;
-//     };
-
-//     export type TaskMeta = {
-//         description: string;
-//         maxScore: number;
-//         score?: number;
-//         logs?: VitestReport.RunLog[];
-//     };
-// }
 
 export namespace ClassroomJSON {
     /**
