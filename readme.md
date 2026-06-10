@@ -8,7 +8,9 @@ It provides three pieces that work together:
 2. A custom [Vitest reporter that writes Classroom50-compatible](./src/reporters/classroom-json.ts) `result.json` output.
 3. A custom [Vitest reporter that writes human-readable](./src/reporters/release-notes.ts) `release-notes.md` feedback.
 
-Both output files are generated during the Vitest run itself.
+Both output files are generated during the Vitest run itself, assuming that the [configuration](./vitest.config.ts) is set up to use the custom reporters.
+
+These tools are designed to work in an Unix-like environment with `bash` and such tools available. They should not work in a pure Windows environment without WSL, Docker or similar setup. This repository contains a development container configuration, which is a recommended way to use and develop the utilities. For running the autograder in production, you should use a CI environment such as GitHub actions.
 
 ## Test Suite Runner
 
@@ -36,7 +38,7 @@ Commands are executed with `zx` through `bash`, and the runner stores command lo
 Example:
 
 ```ts
-import { runSuite } from '../src/runner/runner.js';
+import { runSuite } from '../src/runner/runner.js'; // or '@ohjelmistokehitys/autograder';
 
 runSuite({
     name: 'Example test suite',
@@ -118,6 +120,28 @@ The release notes reporter writes a Markdown report that includes:
 - command logs and failure output for each test case
 
 This makes it suitable for publishing student-facing grading feedback.
+
+### Adding Reporters to Projects
+
+Reporters can be added to any Vitest project by importing them and including them in the `reporters` array in `vitest.config.ts`. See example configuration in [vitest.config.ts](./vitest.config.ts) or below:
+
+```ts
+import { defineConfig } from 'vitest/config';
+import { ClassroomJsonReporter, ReleaseNotesReporter } from '@ohjelmistokehitys/autograder';
+
+export default defineConfig({
+    test: {
+        reporters: [
+            'default',
+            new ClassroomJsonReporter({ resultFile: 'result.json' }),
+            new ReleaseNotesReporter({ notesFile: 'release-notes.md' }),
+            ['json', { outputFile: 'vitest-output.json' }]
+        ],
+    },
+});
+```
+
+If your autograding setup does not live in the repository root, adjust the `resultFile` and `notesFile` paths accordingly, for example `../result.json` and `../release-notes.md`.
 
 ## Typical Workflow During Development
 

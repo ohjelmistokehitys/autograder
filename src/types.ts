@@ -119,7 +119,6 @@ export namespace AutogradingTests {
 
     export type Hook = (context: ExecutionContext) => Promise<any> | void;
 
-
     export type TestCase = RunnableObj & {
         description: string;
         $setup?: string;
@@ -159,6 +158,11 @@ export namespace AutogradingTests {
         testSuite: TestSuite
     }
 
+    /**
+     * The context passed to a custom grader function, which includes the execution context
+     * for running additional commands and accessing test suite details, as well as the logs
+     * from the setup and run commands for making grading decisions based on their output.
+     */
     export type TestContext = ExecutionContext & {
         /** Logs for inspecting the test execution and for adding new entries. */
         logs: TaskMeta["logs"],

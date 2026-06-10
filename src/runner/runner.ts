@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ProcessOutput, $ as zx } from 'zx';
-import { AutogradingTests, RunLog } from '../types';
+import { AutogradingTests, RunLog } from '../types.js';
 
 
 /**

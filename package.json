@@ -1,18 +1,25 @@
 {
-  "name": "autograder-utilities",
+  "name": "@ohjelmistokehitys/autograder",
   "scripts": {
     "test:clean": "rm -f result.json release-notes.md",
     "test:example": "vitest run tests/example.spec.ts",
     "test:verify": "vitest run tests/verify.spec.ts --reporter=default",
-    "test": "npm run test:clean ; npm run test:example ; npm run test:verify"
+    "test": "npm run test:clean ; npm run test:example ; npm run test:verify",
+    "build": "rm -rf dist ; tsc -p tsconfig.build.json"
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
   "dependencies": {
     "vitest": "^4.1.7",
     "zx": "^8.8.5-lite"
   },
-  "type": "module",
   "devDependencies": {
-    "@types/node": "^25.9.1"
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">20.6.0"

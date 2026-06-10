@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { ClassroomJSON } from '../types';
-import { TestResult } from './models/test-result';
+import { ClassroomJSON } from '../types.js';
+import { TestResult } from './models/test-result.js';
 
 /** Default output file, if none is specified in the reporter options. */
 const DEFAULT_RESULT_FILE = 'result.json';
@@ -18,7 +18,7 @@ export type ReporterOptions = {
  *
  * The report is written to a file specified in the reporter options, or `result.json` by default.
  */
-export default class Classroom50Reporter implements Reporter {
+export default class ClassroomJsonReporter implements Reporter {
     private readonly resultFile;
     private ctx!: Vitest;
 

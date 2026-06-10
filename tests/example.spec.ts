@@ -1,4 +1,4 @@
-import { runSuite } from "../src/runner/runner.js";
+import { runSuite } from "../src";
 
 
 runSuite({

@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { TestModule, TestSuite, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { RunLog } from '../types';
-import { TestResult } from './models/test-result';
+import { RunLog } from '../types.js';
+import { TestResult } from './models/test-result.js';
 
 /** Default output file, if none is specified in the reporter options. */
 const DEFAULT_NOTES_FILE = 'release-notes.md';

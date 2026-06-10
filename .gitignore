@@ -4,3 +4,4 @@ result.json
 release-notes.md
 *.class
 *.tmp
+dist
