@@ -1,11 +1,16 @@
-import { defineConfig } from 'vitest/config'
+import { loadEnvFile } from 'node:process';
+import { defineConfig } from 'vitest/config';
+
+// This is not a part of the example. It just loads environment variables from a .env file,
+// which are expected to be present in the actual autograding environment automatically.
+loadEnvFile('./example.env');
 
 export default defineConfig({
     test: {
         reporters: [
             'default',
-            ['./autograding-reporters/src/classroom50reporter.ts', { outputFile: 'result.json' }],
-            ['./autograding-reporters/src/release-notes-reporter.ts', { outputFile: 'release-notes.md' }],
+            ['./src/reporters/classroom-json.ts', { resultFile: 'result.json' }],
+            ['./src/reporters/release-notes.ts', { notesFile: 'release-notes.md' }],
             ['json', { outputFile: 'vitest-output.json' }]
         ],
     },

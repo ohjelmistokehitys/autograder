@@ -21,14 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Test autograding runner
-        run: npm run test:runner
-
-      - name: Test autograding reporters
-        run: npm run test:reporters
-
-      - name: Test example suite and produce report files
-        run: npm run test:example
+      - name: Run tests with the autograder runner
+        run: npm test
 
       - name: Create release tag
         id: tag

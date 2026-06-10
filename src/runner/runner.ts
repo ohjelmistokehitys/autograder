@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ProcessOutput, $ as zx } from 'zx';
-import { AutogradingTests, RunLog } from '../../shared/types';
+import { AutogradingTests, RunLog } from '../types';
 
 
 /**
@@ -16,7 +16,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         env: { ...process.env, NO_COLOR: 'true', CI: 'true' },
 
         // change the working directory to the suite's cwd if specified
-        cwd: testSuite.cwd ?? process.cwd(),
+        cwd: testSuite.cwd ?? process.cwd()
     });
 
     test.describe(
@@ -49,7 +49,6 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
                 await run(runnable);
             }, timeout(runnable, testSuite));
         });
-
 
         testSuite.tests.forEach(testCase => {
             test(testCase.name, async ({ task: { meta } }) => {

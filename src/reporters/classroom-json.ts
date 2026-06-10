@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import { TestModule, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { ClassroomJSON } from '../../shared/types';
-import { TestResult } from './test-result';
+import { ClassroomJSON } from '../types';
+import { TestResult } from './models/test-result';
 
 /** Default output file, if none is specified in the reporter options. */
-const DEFAULT_OUTPUT_FILE = 'result.json';
+const DEFAULT_RESULT_FILE = 'result.json';
 
 export type ReporterOptions = {
     /** The file path where the test results will be written. */
-    outputFile?: string
+    resultFile?: string
 }
 
 /**
@@ -17,16 +17,13 @@ export type ReporterOptions = {
  * https://github.com/foundation50/classroom50/wiki/Autograders#the-resultjson-contract
  *
  * The report is written to a file specified in the reporter options, or `result.json` by default.
- *
- * The reporter requires environment variables from the runner. See
- * https://github.com/foundation50/classroom50/wiki/Autograders#contract
  */
 export default class Classroom50Reporter implements Reporter {
-    private readonly outputFile;
+    private readonly resultFile;
     private ctx!: Vitest;
 
     constructor(options: ReporterOptions) {
-        this.outputFile = options.outputFile ?? DEFAULT_OUTPUT_FILE;
+        this.resultFile = options.resultFile ?? DEFAULT_RESULT_FILE;
     }
 
     onInit(vitest: Vitest) {
@@ -49,7 +46,8 @@ export default class Classroom50Reporter implements Reporter {
     }
 
     /**
-     * Returns environment variables injected by Classroom 50 from GitHub actions.
+     * The reporter requires environment variables from the runner. See
+     * https://github.com/foundation50/classroom50/wiki/Autograders#contract
      */
     getAssignmentEnvironment(): ClassroomJSON.ClassroomEnvironment {
         const getEnv = (name: string, fallback = '') => {
@@ -74,8 +72,8 @@ export default class Classroom50Reporter implements Reporter {
     }
 
     private writeFile(data: ClassroomJSON.ClassroomReport) {
-        this.ctx.logger.log(`Writing results to ${this.outputFile}`);
-        fs.writeFileSync(this.outputFile, JSON.stringify(data, null, 2), 'utf-8');
+        this.ctx.logger.log(`Writing results to ${this.resultFile}`);
+        fs.writeFileSync(this.resultFile, JSON.stringify(data, null, 2), 'utf-8');
     }
 }
 

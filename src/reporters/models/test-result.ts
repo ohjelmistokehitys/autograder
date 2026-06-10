@@ -1,6 +1,6 @@
 import { TaskMeta } from "vitest";
 import { TestCase } from "vitest/node";
-import { ClassroomJSON, RunLog } from "../../shared/types";
+import { ClassroomJSON, RunLog } from "../../types";
 
 /** The default score to be awarded for each test case, if a test metadata doesn't specify a score. */
 const DEFAULT_SCORE = 1;
@@ -29,7 +29,12 @@ export class TestResult {
     }
 
     get icon() {
-        return ({ passed: '✅', failed: '❌', skipped: '⚠️', pending: '⏳' })[this.status] || '⚠️';
+        return ({
+            passed: this.score === this.maxScore ? '✅' : '⚠️',
+            failed: '❌',
+            skipped: '⚠️',
+            pending: '⏳'
+        })[this.status] || '⚠️';
     }
 
     /**

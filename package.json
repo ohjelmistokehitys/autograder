@@ -1,9 +1,10 @@
 {
   "name": "autograder-utilities",
   "scripts": {
+    "test:clean": "rm -f result.json release-notes.md",
     "test:example": "vitest run tests/example.spec.ts",
-    "test:runner": "vitest run tests/e2e/autograding-runner.test.ts --reporter=default",
-    "test:reporters": "vitest run tests/e2e/autograding-reporters.test.ts --reporter=default"
+    "test:verify": "vitest run tests/verify.spec.ts --reporter=default",
+    "test": "npm run test:clean ; npm run test:example ; npm run test:verify"
   },
   "dependencies": {
     "vitest": "^4.1.7"
@@ -12,8 +13,7 @@
   "devDependencies": {
     "@types/node": "^25.9.1"
   },
-  "workspaces": [
-    "autograding-runner",
-    "autograding-reporters"
-  ]
+  "engines": {
+    "node": ">20.6.0"
+  }
 }

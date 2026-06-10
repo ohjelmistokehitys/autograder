@@ -1,17 +1,15 @@
 import fs from 'node:fs';
 import { TestModule, TestSuite, Vitest } from 'vitest/node';
 import type { Reporter } from 'vitest/reporters';
-import { RunLog } from '../../shared/types';
-import { TestResult } from './test-result';
+import { RunLog } from '../types';
+import { TestResult } from './models/test-result';
 
 /** Default output file, if none is specified in the reporter options. */
-const DEFAULT_OUTPUT_FILE = 'release-notes.md';
-
-
+const DEFAULT_NOTES_FILE = 'release-notes.md';
 
 export type ReporterOptions = {
     /** The file path where the test results will be written. */
-    outputFile?: string
+    notesFile?: string
 }
 
 /**
@@ -19,11 +17,11 @@ export type ReporterOptions = {
  * include a summary of the test results and output from each test case, formatted in markdown.
  */
 export default class ReleaseNotesReporter implements Reporter {
-    private readonly outputFile;
+    private readonly notesFile;
     private ctx!: Vitest;
 
     constructor(options: ReporterOptions) {
-        this.outputFile = options.outputFile ?? DEFAULT_OUTPUT_FILE;
+        this.notesFile = options.notesFile ?? DEFAULT_NOTES_FILE;
     }
 
     onInit(vitest: Vitest) {
@@ -33,8 +31,8 @@ export default class ReleaseNotesReporter implements Reporter {
     async onTestRunEnd(testModules: ReadonlyArray<TestModule>) {
         const output = new MarkdownReport(testModules).build();
 
-        this.ctx.logger.log(`Writing results to ${this.outputFile}`);
-        fs.writeFileSync(this.outputFile, output, 'utf-8');
+        this.ctx.logger.log(`Writing results to ${this.notesFile}`);
+        fs.writeFileSync(this.notesFile, output, 'utf-8');
     }
 }
 
@@ -156,8 +154,8 @@ class MarkdownReport {
         if (combinedOutputs.length === 0) {
             combinedOutputs.push('[ no output ]');
         }
-
-        return code([`$ ${log.command}`, ...combinedOutputs].join('\n\n'));
+        const command = prefixLines(log.command, '$ ');
+        return code([command, ...combinedOutputs].join('\n\n'));
     }
 }
 
@@ -169,3 +167,7 @@ const trimIndentation = (str: string) => str.trim().split('\n').map(line => line
 
 /** Sums an array of numbers. */
 const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);
+
+/** Removes potential indentation and adds the given prefix to each line in the given text */
+const prefixLines = (text: string, prefix: string) => trimIndentation(text).split('\n').map(line => `${prefix}${line}`).join('\n');
+

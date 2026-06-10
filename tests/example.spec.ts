@@ -1,16 +1,20 @@
-import { runSuite } from "../autograding-runner/src/runner.js";
+import { runSuite } from "../src/runner/runner.js";
+
 
 runSuite({
-
     defaultTimeout: { seconds: 5 },
-    defaultScore: 1,
+    defaultScore: 10,
 
     name: "Example test suite",
-    description: "This is an example test suite to demonstrate the features of the autograder framework. It includes various types of tests and hooks to show how they can be used in practice.",
+    description: `
+        This is an example test suite to demonstrate the features of the autograder framework.
 
-    // The lifecycle hooks can be either single operations or arrays.
-    // Both JavaScript functions and shell commands are supported.
-    // Also, beforeEach and afterAll/afterEach hooks are also supported.
+        It includes various types of tests and hooks to show how they can be used in practice.
+
+        If you are currently looking at the final \`release-notes.md\` file, you can find the
+        code for this test suite in \`tests/example.spec.ts\` file.
+    `,
+
     beforeAll: [
         "echo 'Setting up test environment...'",
         "echo 'This is the beforeAll hook!'",
@@ -19,22 +23,21 @@ runSuite({
         }
     ],
 
-    // Each test case must have a name and a description. Points, timeouts and setup commands are optional.
-    // If no `contains` or `notContains` fields are provided, the test will pass if the command(s) run without error.
     tests: [
         {
             name: "Simple Hello World",
             description: `
-                Runs the hello world script and checks its output.
+                Runs the hello world script and passes if there are no errors. This test doesn't check the output at all,
+                it just demonstrates how to run a command and assign points based on whether it succeeded or not.
+
+                This test does not have an explicit score, so it will use the default score specified in the suite.
 
                 <code>HTML</code> and **Markdown** formatting is supported in the descriptions for test cases, although you should not abuse this feature in real life.
             `,
             $run: "echo 'Hello world!'",
-            contains: "Hello world!",
-            score: 10
         }, {
             name: "Bash Hello World",
-            description: "Runs two scripts and checks that two separate strings are present in the output.",
+            description: "Runs two commands and checks that two separate strings are present in the output.",
             $setup: "echo 'Hello world!' > hello.tmp",
             $run: "cat hello.tmp",
             contains: ["Hello", "world!"],
@@ -47,48 +50,77 @@ runSuite({
             score: 30
         }, {
             name: "Compiling and running Java code",
-            description: "Tests can have setup commands that run before the test command. In this case, we compile a Java file before running it.",
+            description: "In this case, we compile a Java file in `$setup` before running it in `$run`.",
             $setup: "javac demo/Hello.java",
             $run: "java -cp demo Hello",
             contains: "Hello from Java!",
             score: 40
         }, {
             name: "Running Python scripts",
-            description: "Runs a Python file and checks its output. Also outputs the Python version for debugging purposes.",
-            $setup: `python3 --version && python3 -m pip --version`,
+            description: "Runs a Python file and checks its output. Also outputs the Python and pip versions for debugging purposes.",
+            $setup: `
+                python3 --version
+                python3 -m pip --version
+            `,
             $run: "python3 demo/hello.py",
             contains: "Hello from Python!",
             score: 50
         }, {
+            name: "Failing test case example",
+            description: "This test is designed to fail to demonstrate how failed tests are reported.",
+            $run: "./this/command/does/not/exist.sh",
+            score: 60
+        }, {
             name: "Running Docker containers",
-            description: "Builds and runs a Docker image, then checks the output. This test has a longer timeout since pulling and building images can take some time.",
-            $setup: "docker build --file=demo/hello.Dockerfile --tag=hello demo",
-            $run: "docker run --rm hello",
-            contains: "Hello from Docker!",
-            score: 60,
+            description: `
+                Docker images can be built and run within the autograder. Tests with Docker
+                commands may need a longer timeout since pulling and building images can take some time.
+
+                Note that for this test to work, Docker needs to be installed and running on the machine
+                where the tests are executed. Therefore we do not *actually* run the commands in this example.
+            `,
+            $setup: `
+                # you could build a Docker image for this test like this:
+                # docker build --file=demo/hello.Dockerfile --tag=hello demo
+
+                # for demonstration purposes, we just output the Dockerfile
+                cat demo/hello.Dockerfile
+            `,
+            $run: `
+                # you can run the container like this:
+                # docker run --rm hello
+
+                # for demonstration purposes, we just output the Dockerfile
+                cat demo/hello.Dockerfile
+            `,
+            score: 70,
             timeout: { minutes: 1 }
         }, {
-            name: "Custom grader function and Markdown support in descriptions",
+            name: "Custom grader function",
             description: `
-                This test uses a custom grader function to determine the points awarded. The custom grader actually just gives *random* points and logs them in the test logs.
+                This test uses a custom grader function to determine the points awarded. It actually just gives half
+                the points and logs them in the test logs.
 
-                In a *real* autograder, you would inspect the logs and other context within the custom grader to determine the points based on more complex logic than just whether the test passed or not.
+                As you can see in the code, the \`customGrader\` function has access to the test context, including
+                the test case details and the logs. This allows for implementing complex grading logic based on various factors.
+
+                In a *real* autograder, you would inspect the logs and other context within the custom grader
+                to determine the points based on more complex logic than just whether the test passed or not.
             `,
             $run: "echo 'Random points for this example!'",
-            score: 26,
+            score: 80,
             customGrader: async ({ logs, testCase, testSuite }) => {
 
-                // The hooks can reference the context, including the test suite and test case. This allows for using dynamic values.
-                const score = Math.ceil((testCase.score ?? testSuite.defaultScore) * Math.random());
+                // values are dynamically available here through the testCase prop:
+                const score = Math.floor((testCase.score ?? 0) * 0.5);
 
                 // New log entries can be added within the custom grader, and will be included in the final report. This allows for providing detailed feedback to students.
                 logs.push({
-                    command: "Custom grader logic",
-                    stdout: `Awarded ${score} points based on random grading logic.`,
+                    command: "Custom grader",
+                    stdout: `Awarded ${score} points based on custom grading logic.`,
                     ok: true
                 });
 
-                // In a real grader, you would inspect the logs and other context to determine the points.
                 return { score };
             }
         }
