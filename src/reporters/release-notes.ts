@@ -128,7 +128,7 @@ class MarkdownReport {
             const score = test.maxScore ? `(${test.score ?? 0} / ${test.maxScore} points)` : '';
 
             return [
-                `<a name="${test.anchor}"><!-- anchor for linking from the table of contents --></a>`,
+                `<a name="${test.anchor}"></a>`, // anchor for linking from the summary table
 
                 `### ${test.name} ${score} [${test.icon} ${test.status}]`,
 

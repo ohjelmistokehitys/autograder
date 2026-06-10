@@ -12,11 +12,11 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: latest
 
       - name: Install dependencies
         run: npm install
@@ -39,3 +39,30 @@ jobs:
             --notes-file release-notes.md \
             result.json \
             vitest-output.json
+
+
+  build-and-install-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: latest
+
+      - name: Build the autograder package
+        run: npm run build
+
+      - name: Package into a .tgz file
+        run: npm pack
+
+      - name: Install built package in the assignment template
+        run: |
+          cd assignment-template
+          npm install ../ohjelmistokehitys-autograder-*.tgz
+
+      - name: Run tests in the assignment template using the built package
+        run: |
+          cd assignment-template
+          npm test

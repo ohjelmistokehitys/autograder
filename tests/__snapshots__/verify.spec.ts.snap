@@ -33,7 +33,7 @@ Passed: **7 / 8**
 
 ## Test cases
 
-<a name="simple_hello_world"><!-- anchor for linking from the table of contents --></a>
+<a name="simple_hello_world"></a>
 
 ### Simple Hello World (10 / 10 points) [✅ passed]
 
@@ -50,7 +50,7 @@ $ echo 'Hello world!'
 Hello world!
 \`\`\`
 
-<a name="bash_hello_world"><!-- anchor for linking from the table of contents --></a>
+<a name="bash_hello_world"></a>
 
 ### Bash Hello World (20 / 20 points) [✅ passed]
 
@@ -68,7 +68,7 @@ $ cat hello.tmp
 Hello world!
 \`\`\`
 
-<a name="running_nodejs_scripts"><!-- anchor for linking from the table of contents --></a>
+<a name="running_nodejs_scripts"></a>
 
 ### Running Node.js scripts (30 / 30 points) [✅ passed]
 
@@ -80,7 +80,7 @@ $ node demo/hello.js
 Hello from JavaScript!
 \`\`\`
 
-<a name="compiling_and_running_java_code"><!-- anchor for linking from the table of contents --></a>
+<a name="compiling_and_running_java_code"></a>
 
 ### Compiling and running Java code (40 / 40 points) [✅ passed]
 
@@ -98,7 +98,7 @@ $ java -cp demo Hello
 Hello from Java!
 \`\`\`
 
-<a name="running_python_scripts"><!-- anchor for linking from the table of contents --></a>
+<a name="running_python_scripts"></a>
 
 ### Running Python scripts (50 / 50 points) [✅ passed]
 
@@ -117,7 +117,7 @@ $ python3 demo/hello.py
 Hello from Python!
 \`\`\`
 
-<a name="failing_test_case_example"><!-- anchor for linking from the table of contents --></a>
+<a name="failing_test_case_example"></a>
 
 ### Failing test case example (0 / 60 points) [❌ failed]
 
@@ -133,7 +133,7 @@ bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
 ❌ Error: bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
 \`\`\`
 
-<a name="running_docker_containers"><!-- anchor for linking from the table of contents --></a>
+<a name="running_docker_containers"></a>
 
 ### Running Docker containers (70 / 70 points) [✅ passed]
 
@@ -167,7 +167,7 @@ FROM hello-world
 # you can do any setup you want here, like installing dependencies or copying files to be tested
 \`\`\`
 
-<a name="custom_grader_function"><!-- anchor for linking from the table of contents --></a>
+<a name="custom_grader_function"></a>
 
 ### Custom grader function (40 / 80 points) [⚠️ passed]
 

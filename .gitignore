@@ -5,3 +5,4 @@ release-notes.md
 *.class
 *.tmp
 dist
+*.tgz
