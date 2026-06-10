@@ -57,10 +57,12 @@ runSuite({
             score: 40
         }, {
             name: "Running Python scripts",
-            description: "Runs a Python file and checks its output. Also outputs the Python and pip versions for debugging purposes.",
+            description: "Runs a Python file and checks its output. You could also check the Python and pip versions for debugging purposes.",
+
+            // commands commented out so that snapshot tests don't fail across different environments
             $setup: `
-                python3 --version
-                python3 -m pip --version
+                # python3 --version
+                # python3 -m pip --version
             `,
             $run: "python3 demo/hello.py",
             contains: "Hello from Python!",

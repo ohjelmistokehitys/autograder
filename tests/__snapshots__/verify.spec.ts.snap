@@ -102,14 +102,13 @@ Hello from Java!
 
 ### Running Python scripts (50 / 50 points) [✅ passed]
 
-Runs a Python file and checks its output. Also outputs the Python and pip versions for debugging purposes.
+Runs a Python file and checks its output. You could also check the Python and pip versions for debugging purposes.
 
 \`\`\`
-$ python3 --version
-$ python3 -m pip --version
+$ # python3 --version
+$ # python3 -m pip --version
 
-Python 3.14.2
-pip 26.1.1 from /home/codespace/.python/current/lib/python3.14/site-packages/pip (python 3.14)
+[ no output ]
 \`\`\`
 
 \`\`\`
