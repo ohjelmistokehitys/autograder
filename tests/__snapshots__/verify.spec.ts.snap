@@ -156,7 +156,7 @@ This test is designed to fail to demonstrate how failed tests are reported.
 > \`\`\`
 > bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
 > 
-> at file:///workspaces/autograder/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+> at file://<ERROR_LINE_DETAILS>
 > exit code: 127 (Command not found)
 > \`\`\`
 
