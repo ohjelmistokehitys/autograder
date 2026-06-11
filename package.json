@@ -1,6 +1,6 @@
 {
   "name": "@ohjelmistokehitys/autograder",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "test:clean": "rm -f result.json release-notes.md",
     "test:example": "vitest run tests/example.spec.ts",
