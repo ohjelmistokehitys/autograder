@@ -25,7 +25,7 @@
   "homepage": "https://github.com/ohjelmistokehitys/autograder",
   "repository": {
     "type": "git",
-    "url": "github:ohjelmistokehitys/autograder"
+    "url": "git+https://github.com/ohjelmistokehitys/autograder.git"
   },
   "engines": {
     "node": ">22.0.0"
