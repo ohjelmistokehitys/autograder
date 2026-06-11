@@ -1,16 +1,16 @@
 # Autograder Utilities
 
-This repository contains a small TypeScript-based autograding toolkit built on top of Vitest.
+This project contains a small TypeScript-based autograding toolkit built on top of Vitest. It is designed to help write command-driven test suites for autograding programming assignments in Classroom50 and similar platforms.
 
-It provides three pieces that work together:
+The project provides three pieces that work together:
 
 1. A command-driven [test runner](./src/runner/runner.ts) for writing autograding specs in Vitest.
-2. A custom [Vitest reporter that writes Classroom50-compatible](./src/reporters/classroom-json.ts) `result.json` output.
+2. A custom [Vitest reporter that writes](./src/reporters/classroom-json.ts) `result.json` grading output.
 3. A custom [Vitest reporter that writes human-readable](./src/reporters/release-notes.ts) `release-notes.md` feedback.
 
 Both output files are generated during the Vitest run itself, assuming that the [configuration](./vitest.config.ts) is set up to use the custom reporters.
 
-These tools are designed to work in an Unix-like environment with `bash` and such tools available. They should not work in a pure Windows environment without WSL, Docker or similar setup. This repository contains a development container configuration, which is a recommended way to use and develop the utilities. For running the autograder in production, you should use a CI environment such as GitHub actions.
+These tools are designed to work in an Unix-like environment with `bash` and such tools available. They not work in a Windows environment without WSL, Docker or similar setup. The project repository also contains a development container configuration, which is a recommended way to use and develop the utilities. For running the autograder on a course, you should use a CI environment such as GitHub actions.
 
 ## Test Suite Runner
 
@@ -33,7 +33,7 @@ Each test case can define:
 - optional `score` override per test
 - optional `customGrader` for custom scoring logic
 
-Commands are executed with `zx` through `bash`, and the runner stores command logs in Vitest task metadata so the reporters can include them in generated outputs.
+Behind the scenes, commands are executed with `zx` through `bash`. The runner stores command logs in Vitest task metadata so the reporters can include them in generated outputs.
 
 Example:
 
@@ -67,7 +67,7 @@ runSuite({
         {
             name: 'Custom grading example',
             description: 'Uses a custom grader to award partial credit.',
-            $run: "echo 'Random points for this example!'",
+            $run: "echo 'Custom score for this example!'",
             score: 80,
             customGrader: async ({ logs, testCase, testSuite }) => {
                 const score = Math.floor((testCase.score ?? testSuite.defaultScore) * 0.5);
@@ -97,7 +97,7 @@ The reporters are configured in [vitest.config.ts](./vitest.config.ts):
 
 A normal Vitest run can produce all outputs in one pass as long as they are configured as reporters in `vitest.config.ts`.
 
-### `result.json`
+### Environment variables for `result.json`
 
 The Classroom JSON reporter writes a [Classroom50](https://github.com/foundation50/classroom50/wiki/Autograders#the-resultjson-contract)-compatible `result.json` file.
 
@@ -110,14 +110,16 @@ It collects test metadata and scores from the Vitest run and combines that with 
 - `COMMIT_URL`
 - `RELEASE_URL`
 
-### `release-notes.md`
+Example variables for testing purposes can be found in the [example.env](./example.env) file.
+
+### Writing the `release-notes.md`
 
 The release notes reporter writes a Markdown report that includes:
 
 - suite name and description
 - total score and pass count
 - a summary table of test cases
-- command logs and failure output for each test case
+- name, score, description, command logs and failure output for each test case
 
 This makes it suitable for publishing student-facing grading feedback.
 
@@ -159,22 +161,10 @@ Verify the generated `result.json` and `release-notes.md` against snapshots:
 npm run test:verify
 ```
 
-Run the full local workflow:
+Alternatively, run the full local workflow in one step:
 
 ```sh
 npm test
-```
-
-This does the following:
-
-1. Removes old `result.json` and `release-notes.md` files.
-2. Runs the example suite.
-3. Runs the snapshot verification suite.
-
-If you want to clear generated outputs manually, use:
-
-```sh
-npm run test:clean
 ```
 
 ## Typical Workflow in Student Repositories
@@ -189,3 +179,5 @@ npm install
 # assuming that vitest.config.ts is set up to use the custom reporters
 npx vitest run
 ```
+
+We have provided an [assignment template](./assignment-template/) that you can use as a starting point for setting up the autograding configuration and test suites in your student repositories.
