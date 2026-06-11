@@ -74,8 +74,7 @@ runSuite({
 
                 logs.push({
                     command: 'Custom grader',
-                    stdout: `Awarded ${score} points based on custom grading logic.`,
-                    ok: true
+                    stdout: `Awarded ${score} points based on custom grading logic.`
                 });
 
                 return { score };

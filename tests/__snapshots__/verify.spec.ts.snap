@@ -11,9 +11,9 @@ If you are currently looking at the final \`release-notes.md\` file, you can fin
 
 ----
 
-Score: **260 / 360**
+Score: **205 / 295**
 
-Passed: **7 / 8**
+Passed: **9 / 11**
 
 ----
 
@@ -22,13 +22,16 @@ Passed: **7 / 8**
 | Ok? | Test name | Status | Points |
 | --- | --- | --- | --- |
 | ✅ | [Simple Hello World](#simple_hello_world) | passed | 10 / 10 |
-| ✅ | [Bash Hello World](#bash_hello_world) | passed | 20 / 20 |
-| ✅ | [Running Node.js scripts](#running_nodejs_scripts) | passed | 30 / 30 |
-| ✅ | [Compiling and running Java code](#compiling_and_running_java_code) | passed | 40 / 40 |
-| ✅ | [Running Python scripts](#running_python_scripts) | passed | 50 / 50 |
-| ❌ | [Failing test case example](#failing_test_case_example) | failed | 0 / 60 |
-| ✅ | [Running Docker containers](#running_docker_containers) | passed | 70 / 70 |
-| ⚠️ | [Custom grader function](#custom_grader_function) | passed | 40 / 80 |
+| ✅ | [Bash Hello World](#bash_hello_world) | passed | 5 / 5 |
+| ✅ | [Running Node.js scripts](#running_nodejs_scripts) | passed | 10 / 10 |
+| ✅ | [Compiling and running Java code](#compiling_and_running_java_code) | passed | 15 / 15 |
+| ✅ | [Running Python scripts](#running_python_scripts) | passed | 20 / 20 |
+| ❌ | [Failing test case](#failing_test_case) | failed | 0 / 25 |
+| ✅ | [Running Docker containers](#running_docker_containers) | passed | 30 / 30 |
+| ✅ | [Test that compares run output to a reference output](#test_that_compares_run_output_to_a_reference_output) | passed | 45 / 45 |
+| ⚠️ | [Custom grader function](#custom_grader_function) | passed | 20 / 40 |
+| ❌ | [Failing test due to timeout](#failing_test_due_to_timeout) | failed | 0 / 45 |
+| ✅ | [UTF-8 encoding test](#utf8_encoding_test) | passed | 50 / 50 |
 
 ## Test cases
 
@@ -52,7 +55,7 @@ This test does not have an explicit score, so it will use the default score spec
 
 <a name="bash_hello_world"></a>
 
-### Bash Hello World (20 / 20 points) [✅ passed]
+### Bash Hello World (5 / 5 points) [✅ passed]
 
 Runs two commands and checks that two separate strings are present in the output.
 
@@ -74,7 +77,7 @@ Runs two commands and checks that two separate strings are present in the output
 
 <a name="running_nodejs_scripts"></a>
 
-### Running Node.js scripts (30 / 30 points) [✅ passed]
+### Running Node.js scripts (10 / 10 points) [✅ passed]
 
 Runs a JavaScript file and checks its outputs. This time the script outputs to both stdout and stderr.
 
@@ -92,7 +95,7 @@ Runs a JavaScript file and checks its outputs. This time the script outputs to b
 
 <a name="compiling_and_running_java_code"></a>
 
-### Compiling and running Java code (40 / 40 points) [✅ passed]
+### Compiling and running Java code (15 / 15 points) [✅ passed]
 
 In this case, we compile a Java file in \`$setup\` before running it in \`$run\`.
 
@@ -114,7 +117,7 @@ In this case, we compile a Java file in \`$setup\` before running it in \`$run\`
 
 <a name="running_python_scripts"></a>
 
-### Running Python scripts (50 / 50 points) [✅ passed]
+### Running Python scripts (20 / 20 points) [✅ passed]
 
 Runs a Python file and checks its output. You could also check the Python and pip versions for debugging purposes.
 
@@ -135,9 +138,9 @@ Runs a Python file and checks its output. You could also check the Python and pi
 > Hello from Python!
 > \`\`\`
 
-<a name="failing_test_case_example"></a>
+<a name="failing_test_case"></a>
 
-### Failing test case example (0 / 60 points) [❌ failed]
+### Failing test case (0 / 25 points) [❌ failed]
 
 This test is designed to fail to demonstrate how failed tests are reported.
 
@@ -149,13 +152,17 @@ This test is designed to fail to demonstrate how failed tests are reported.
 > bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
 > \`\`\`
 
-\`\`\`
-❌ Error: bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
-\`\`\`
+> [!CAUTION]
+> \`\`\`
+> bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
+> 
+> at file:///workspaces/autograder/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+> exit code: 127 (Command not found)
+> \`\`\`
 
 <a name="running_docker_containers"></a>
 
-### Running Docker containers (70 / 70 points) [✅ passed]
+### Running Docker containers (30 / 30 points) [✅ passed]
 
 Docker images can be built and run within the autograder. Tests with Docker commands may need a longer timeout since pulling and building images can take some time.
 
@@ -189,9 +196,23 @@ Note that for this test to work, Docker needs to be installed and running on the
 > # you can do any setup you want here, like installing dependencies or copying files to be tested
 > \`\`\`
 
+<a name="test_that_compares_run_output_to_a_reference_output"></a>
+
+### Test that compares run output to a reference output (45 / 45 points) [✅ passed]
+
+This test is designed to execute a command and compare its output to the output of a reference command specified in \`$compareRun\`. This allows for testing the output of a command without having to hardcode the expected output in the test case, which can be useful for more complex outputs.
+
+> \`\`\`
+> $ ./demo/script.sh
+> \`\`\`
+> 
+> \`\`\`
+> found 0 vulnerabilities
+> \`\`\`
+
 <a name="custom_grader_function"></a>
 
-### Custom grader function (40 / 80 points) [⚠️ passed]
+### Custom grader function (20 / 40 points) [⚠️ passed]
 
 This test uses a custom grader function to determine the points awarded. It actually just gives half the points and logs them in the test logs.
 
@@ -212,7 +233,57 @@ In a *real* autograder, you would inspect the logs and other context within the 
 > \`\`\`
 > 
 > \`\`\`
-> Awarded 40 points based on custom grading logic.
+> Awarded 20 points based on custom grading logic.
+> \`\`\`
+
+<a name="failing_test_due_to_timeout"></a>
+
+### Failing test due to timeout (0 / 45 points) [❌ failed]
+
+This test is designed to time out to demonstrate timeout handling.
+
+> \`\`\`
+> $ echo 'This test will time out...'
+> $ sleep 2
+> $ echo '...this will not be seen in the output'
+> \`\`\`
+> 
+> \`\`\`
+> [ no output ]
+> \`\`\`
+
+> [!CAUTION]
+> \`\`\`
+> Test timed out in 1000ms.
+> If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+> \`\`\`
+
+<a name="utf8_encoding_test"></a>
+
+### UTF-8 encoding test (50 / 50 points) [✅ passed]
+
+This test checks that UTF-8 encoding is working correctly by outputting special characters. This can be important for ensuring that test outputs are correctly encoded and displayed, especially when dealing with internationalization or special symbols.
+
+> \`\`\`
+> $ cat demo/utf8.sh
+> \`\`\`
+> 
+> \`\`\`
+> echo "This script outputs special characters to verify that UTF-8 encoding is working correctly:"
+> echo "Hello, world! 👋🌍"
+> echo "Here are some more special characters: å, ä, ö, €."
+> echo "If you can see all of the above characters correctly, then the UTF-8 encoding is working as expected."
+> \`\`\`
+
+> \`\`\`
+> $ ./demo/utf8.sh
+> \`\`\`
+> 
+> \`\`\`
+> This script outputs special characters to verify that UTF-8 encoding is working correctly:
+> Hello, world! 👋🌍
+> Here are some more special characters: å, ä, ö, €.
+> If you can see all of the above characters correctly, then the UTF-8 encoding is working as expected.
 > \`\`\`"
 `;
 
@@ -222,11 +293,11 @@ exports[`result.json > matches snapshot 1`] = `
   "classroom": "demo101",
   "commit": "https://example.com/commit",
   "datetime": Any<String>,
-  "max-score": 360,
+  "max-score": 295,
   "release": "https://example.com/release",
   "review": "https://example.com/commit",
   "schema": "classroom50/result/v1",
-  "score": 260,
+  "score": 205,
   "submission": "https://example.com/submission",
   "tests": [
     {
@@ -236,46 +307,64 @@ exports[`result.json > matches snapshot 1`] = `
       "test-name": "Simple Hello World",
     },
     {
+      "max-score": 5,
+      "passed": true,
+      "score": 5,
+      "test-name": "Bash Hello World",
+    },
+    {
+      "max-score": 10,
+      "passed": true,
+      "score": 10,
+      "test-name": "Running Node.js scripts",
+    },
+    {
+      "max-score": 15,
+      "passed": true,
+      "score": 15,
+      "test-name": "Compiling and running Java code",
+    },
+    {
       "max-score": 20,
       "passed": true,
       "score": 20,
-      "test-name": "Bash Hello World",
+      "test-name": "Running Python scripts",
+    },
+    {
+      "max-score": 25,
+      "passed": false,
+      "score": 0,
+      "test-name": "Failing test case",
     },
     {
       "max-score": 30,
       "passed": true,
       "score": 30,
-      "test-name": "Running Node.js scripts",
+      "test-name": "Running Docker containers",
+    },
+    {
+      "max-score": 45,
+      "passed": true,
+      "score": 45,
+      "test-name": "Test that compares run output to a reference output",
     },
     {
       "max-score": 40,
       "passed": true,
-      "score": 40,
-      "test-name": "Compiling and running Java code",
+      "score": 20,
+      "test-name": "Custom grader function",
+    },
+    {
+      "max-score": 45,
+      "passed": false,
+      "score": 0,
+      "test-name": "Failing test due to timeout",
     },
     {
       "max-score": 50,
       "passed": true,
       "score": 50,
-      "test-name": "Running Python scripts",
-    },
-    {
-      "max-score": 60,
-      "passed": false,
-      "score": 0,
-      "test-name": "Failing test case example",
-    },
-    {
-      "max-score": 70,
-      "passed": true,
-      "score": 70,
-      "test-name": "Running Docker containers",
-    },
-    {
-      "max-score": 80,
-      "passed": true,
-      "score": 40,
-      "test-name": "Custom grader function",
+      "test-name": "UTF-8 encoding test",
     },
   ],
   "usernames": [

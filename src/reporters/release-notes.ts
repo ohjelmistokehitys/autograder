@@ -85,11 +85,11 @@ class MarkdownReport {
             '----',
         ];
 
-        // if there were any suite level errors that prevented tests from running, include them in the report
+        // if there were any suite level errors in lifecycle hooks, include them in the report
         if (this.suite.errors().length > 0) {
             lines.push(
-                `## Errors that prevented tests from running`,
-                ...this.suite.errors().map(err => code(`❌ ${err.message}`))
+                `## Errors that occurred outside of test cases`,
+                ...this.suite.errors().map(err => caution(code(err.message)))
             );
         }
 
@@ -136,10 +136,12 @@ class MarkdownReport {
 
                 ...commandLogs,
 
-                ...test.failureMessages.map(failure => code(`❌ ${failure}`))
-            ]
-                .filter(line => line) // exclude potential empty lines
+                ...test.failureMessages.map(failure => caution(code(failure))),
+
+                test.skipped ? warning('This test was skipped. See logs and the full report for more information.') : ''
+            ].filter(line => line) // exclude potential empty lines
         });
+
 
         return ["## Test cases", ...testCaseReports.flat()];
     }
@@ -165,6 +167,12 @@ class MarkdownReport {
         );
     }
 }
+
+/** Adds a github markdown caution notice using a block quote. */
+const caution = (text: string) => blockQuote(`[!CAUTION]\n${text}`);
+
+/** Adds a github markdown warning notice using a block quote. */
+const warning = (text: string) => blockQuote(`[!WARNING]\n${text}`);
 
 /** Wraps the given string into a Markdown code block */
 const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;

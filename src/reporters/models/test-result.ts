@@ -62,12 +62,16 @@ export class TestResult {
         return this.status === 'passed';
     }
 
+    get skipped(): boolean {
+        return this.status === 'skipped';
+    }
+
     get logs(): RunLog[] {
         return this.meta.logs ?? [];
     }
 
     get failureMessages(): string[] {
-        return this.test.result().errors?.map(e => e.stack?.split('\n')[0] || e.message) || [];
+        return this.test.result().errors?.map(e => e.message ?? JSON.stringify(e)) || [];
     }
 
     /** An alphanumeric identifier for the test case, suitable for use in URLs or anchors. */

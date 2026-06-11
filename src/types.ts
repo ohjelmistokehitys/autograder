@@ -16,7 +16,6 @@ export type TestMeta = {
     score?: number;
     logs?: {
         command: string;
-        ok: boolean;
 
         stdout?: string;
         stderr?: string;

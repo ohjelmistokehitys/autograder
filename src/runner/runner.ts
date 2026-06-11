@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, TestOptions } from 'vitest';
 import { ProcessOutput, $ as zx } from 'zx';
 import { AutogradingTests, RunLog } from '../types.js';
 
@@ -22,7 +22,9 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
     test.describe(
         testSuite.name, {
         meta: {
-            description: testSuite.description
+            description: testSuite.description,
+            score: 0,
+            maxScore: testSuite.defaultScore
         }
     }, () => {
 
@@ -51,11 +53,15 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         });
 
         testSuite.tests.forEach(testCase => {
-            test(testCase.name, async ({ task: { meta } }) => {
-                meta.maxScore = testCase.score ?? testSuite.defaultScore;
-                meta.description = testCase.description;
-                meta.score = 0;
-
+            const options: TestOptions = {
+                timeout: timeout(testCase, testSuite),
+                meta: {
+                    description: testCase.description,
+                    score: 0,
+                    maxScore: testCase.score ?? testSuite.defaultScore
+                }
+            };
+            test(testCase.name, options, async ({ task: { meta } }) => {
                 const logs = meta.logs = [];
                 let output = "";
 
@@ -77,8 +83,7 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
                     // full points awarded if there is no custom grader and the test passed without throwing an error
                     meta.score = meta.maxScore;
                 }
-
-            }, timeout(testCase, testSuite));
+            });
         });
     });
 
@@ -140,9 +145,10 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
      */
     async function runCmd(cmd: string, logs?: RunLog[]): Promise<ProcessOutput> {
         const entry: RunLog = {
-            command: cmd,
-            ok: true
+            command: cmd
         };
+
+        logs?.push(entry);
 
         try {
             const p = await $`bash -c ${cmd}`;
@@ -153,7 +159,6 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
         } catch (err) {
             // Check if the error was thrown by zx and contains the expected properties
             const isProcessError = (e: unknown): e is ProcessOutput => e !== null && typeof e === 'object' && 'stdout' in e && 'stderr' in e;
-            entry.ok = false;
 
             if (isProcessError(err)) {
                 const p = err as ProcessOutput;
@@ -162,8 +167,6 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
             }
             throw err;
 
-        } finally {
-            logs?.push(entry);
         }
     }
 }

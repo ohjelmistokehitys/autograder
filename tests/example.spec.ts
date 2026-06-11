@@ -39,20 +39,20 @@ runSuite({
             $setup: "echo 'Hello world!' > hello.tmp",
             $run: "cat hello.tmp",
             contains: ["Hello", "world!"],
-            score: 20
+            score: 5
         }, {
             name: "Running Node.js scripts",
             description: "Runs a JavaScript file and checks its outputs. This time the script outputs to both stdout and stderr.",
             $run: "node demo/hello.js",
             contains: ["Hello from JavaScript!", "Hello from console.error!"],
-            score: 30
+            score: 10
         }, {
             name: "Compiling and running Java code",
             description: "In this case, we compile a Java file in `$setup` before running it in `$run`.",
             $setup: "javac demo/Hello.java",
             $run: "java -cp demo Hello",
             contains: "Hello from Java!",
-            score: 40
+            score: 15
         }, {
             name: "Running Python scripts",
             description: "Runs a Python file and checks its output. You could also check the Python and pip versions for debugging purposes.",
@@ -64,12 +64,12 @@ runSuite({
             `,
             $run: "python3 demo/hello.py",
             contains: "Hello from Python!",
-            score: 50
+            score: 20
         }, {
-            name: "Failing test case example",
+            name: "Failing test case",
             description: "This test is designed to fail to demonstrate how failed tests are reported.",
             $run: "./this/command/does/not/exist.sh",
-            score: 60
+            score: 25
         }, {
             name: "Running Docker containers",
             description: `
@@ -91,8 +91,14 @@ runSuite({
                 # for demonstration purposes, we just output the Dockerfile
                 cat demo/hello.Dockerfile
             `,
-            score: 70,
+            score: 30,
             timeout: { minutes: 1 }
+        }, {
+            name: "Test that compares run output to a reference output",
+            description: "This test is designed to execute a command and compare its output to the output of a reference command specified in `$compareRun`. This allows for testing the output of a command without having to hardcode the expected output in the test case, which can be useful for more complex outputs.",
+            $run: `./demo/script.sh`, // the script should run npm audit
+            $compareRun: `npm audit`, // verify that the output matches the output of running npm audit directly
+            score: 45
         }, {
             name: "Custom grader function",
             description: `
@@ -103,7 +109,7 @@ runSuite({
                 In a *real* autograder, you would inspect the logs and other context within the custom grader to determine the points based on more complex logic than just whether the test passed or not.
             `,
             $run: "echo 'Random points for this example!'",
-            score: 80,
+            score: 40,
             customGrader: async ({ logs, testCase, testSuite }) => {
 
                 // values are dynamically available here through the testCase prop:
@@ -112,12 +118,28 @@ runSuite({
                 // New log entries can be added within the custom grader, and will be included in the final report. This allows for providing detailed feedback to students.
                 logs.push({
                     command: "Custom grader",
-                    stdout: `Awarded ${score} points based on custom grading logic.`,
-                    ok: true
+                    stdout: `Awarded ${score} points based on custom grading logic.`
                 });
 
                 return { score };
             }
+        }, {
+            name: "Failing test due to timeout",
+            description: "This test is designed to time out to demonstrate timeout handling.",
+            $run: `
+                echo 'This test will time out...'
+                sleep 2
+                echo '...this will not be seen in the output'
+            `,
+            score: 45,
+            timeout: { seconds: 1 }
+        }, {
+            name: "UTF-8 encoding test",
+            description: "This test checks that UTF-8 encoding is working correctly by outputting special characters. This can be important for ensuring that test outputs are correctly encoded and displayed, especially when dealing with internationalization or special symbols.",
+            $setup: "cat demo/utf8.sh",
+            $run: "./demo/utf8.sh",
+            contains: ["Hello, world! 👋🌍", "å, ä, ö, €"],
+            score: 50
         }
     ]
 });
