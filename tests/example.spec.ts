@@ -11,8 +11,7 @@ runSuite({
 
         It includes various types of tests and hooks to show how they can be used in practice.
 
-        If you are currently looking at the final \`release-notes.md\` file, you can find the
-        code for this test suite in \`tests/example.spec.ts\` file.
+        If you are currently looking at the final \`release-notes.md\` file, you can find the code for this test suite in \`tests/example.spec.ts\` file.
     `,
 
     beforeAll: [
@@ -27,8 +26,7 @@ runSuite({
         {
             name: "Simple Hello World",
             description: `
-                Runs the hello world script and passes if there are no errors. This test doesn't check the output at all,
-                it just demonstrates how to run a command and assign points based on whether it succeeded or not.
+                Runs the hello world script and passes if there are no errors. This test doesn't check the output at all, it just demonstrates how to run a command and assign points based on whether it succeeded or not.
 
                 This test does not have an explicit score, so it will use the default score specified in the suite.
 
@@ -44,9 +42,9 @@ runSuite({
             score: 20
         }, {
             name: "Running Node.js scripts",
-            description: "Runs a JavaScript file and checks its output.",
+            description: "Runs a JavaScript file and checks its outputs. This time the script outputs to both stdout and stderr.",
             $run: "node demo/hello.js",
-            contains: "Hello from JavaScript!",
+            contains: ["Hello from JavaScript!", "Hello from console.error!"],
             score: 30
         }, {
             name: "Compiling and running Java code",
@@ -75,11 +73,9 @@ runSuite({
         }, {
             name: "Running Docker containers",
             description: `
-                Docker images can be built and run within the autograder. Tests with Docker
-                commands may need a longer timeout since pulling and building images can take some time.
+                Docker images can be built and run within the autograder. Tests with Docker commands may need a longer timeout since pulling and building images can take some time.
 
-                Note that for this test to work, Docker needs to be installed and running on the machine
-                where the tests are executed. Therefore we do not *actually* run the commands in this example.
+                Note that for this test to work, Docker needs to be installed and running on the machine where the tests are executed. Therefore we do not *actually* run the commands in this example.
             `,
             $setup: `
                 # you could build a Docker image for this test like this:
@@ -100,14 +96,11 @@ runSuite({
         }, {
             name: "Custom grader function",
             description: `
-                This test uses a custom grader function to determine the points awarded. It actually just gives half
-                the points and logs them in the test logs.
+                This test uses a custom grader function to determine the points awarded. It actually just gives half the points and logs them in the test logs.
 
-                As you can see in the code, the \`customGrader\` function has access to the test context, including
-                the test case details and the logs. This allows for implementing complex grading logic based on various factors.
+                As you can see in the code, the \`customGrader\` function has access to the test context, including the test case details and the logs. This allows for implementing complex grading logic based on various factors.
 
-                In a *real* autograder, you would inspect the logs and other context within the custom grader
-                to determine the points based on more complex logic than just whether the test passed or not.
+                In a *real* autograder, you would inspect the logs and other context within the custom grader to determine the points based on more complex logic than just whether the test passed or not.
             `,
             $run: "echo 'Random points for this example!'",
             score: 80,

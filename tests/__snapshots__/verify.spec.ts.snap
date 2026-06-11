@@ -7,8 +7,7 @@ This is an example test suite to demonstrate the features of the autograder fram
 
 It includes various types of tests and hooks to show how they can be used in practice.
 
-If you are currently looking at the final \`release-notes.md\` file, you can find the
-code for this test suite in \`tests/example.spec.ts\` file.
+If you are currently looking at the final \`release-notes.md\` file, you can find the code for this test suite in \`tests/example.spec.ts\` file.
 
 ----
 
@@ -37,18 +36,19 @@ Passed: **7 / 8**
 
 ### Simple Hello World (10 / 10 points) [✅ passed]
 
-Runs the hello world script and passes if there are no errors. This test doesn't check the output at all,
-it just demonstrates how to run a command and assign points based on whether it succeeded or not.
+Runs the hello world script and passes if there are no errors. This test doesn't check the output at all, it just demonstrates how to run a command and assign points based on whether it succeeded or not.
 
 This test does not have an explicit score, so it will use the default score specified in the suite.
 
 <code>HTML</code> and **Markdown** formatting is supported in the descriptions for test cases, although you should not abuse this feature in real life.
 
-\`\`\`
-$ echo 'Hello world!'
-
-Hello world!
-\`\`\`
+> \`\`\`
+> $ echo 'Hello world!'
+> \`\`\`
+> 
+> \`\`\`
+> Hello world!
+> \`\`\`
 
 <a name="bash_hello_world"></a>
 
@@ -56,29 +56,39 @@ Hello world!
 
 Runs two commands and checks that two separate strings are present in the output.
 
-\`\`\`
-$ echo 'Hello world!' > hello.tmp
+> \`\`\`
+> $ echo 'Hello world!' > hello.tmp
+> \`\`\`
+> 
+> \`\`\`
+> [ no output ]
+> \`\`\`
 
-[ no output ]
-\`\`\`
-
-\`\`\`
-$ cat hello.tmp
-
-Hello world!
-\`\`\`
+> \`\`\`
+> $ cat hello.tmp
+> \`\`\`
+> 
+> \`\`\`
+> Hello world!
+> \`\`\`
 
 <a name="running_nodejs_scripts"></a>
 
 ### Running Node.js scripts (30 / 30 points) [✅ passed]
 
-Runs a JavaScript file and checks its output.
+Runs a JavaScript file and checks its outputs. This time the script outputs to both stdout and stderr.
 
-\`\`\`
-$ node demo/hello.js
-
-Hello from JavaScript!
-\`\`\`
+> \`\`\`
+> $ node demo/hello.js
+> \`\`\`
+> 
+> \`\`\`
+> Hello from JavaScript!
+> \`\`\`
+> 
+> \`\`\`
+> Hello from console.error!
+> \`\`\`
 
 <a name="compiling_and_running_java_code"></a>
 
@@ -86,17 +96,21 @@ Hello from JavaScript!
 
 In this case, we compile a Java file in \`$setup\` before running it in \`$run\`.
 
-\`\`\`
-$ javac demo/Hello.java
+> \`\`\`
+> $ javac demo/Hello.java
+> \`\`\`
+> 
+> \`\`\`
+> [ no output ]
+> \`\`\`
 
-[ no output ]
-\`\`\`
-
-\`\`\`
-$ java -cp demo Hello
-
-Hello from Java!
-\`\`\`
+> \`\`\`
+> $ java -cp demo Hello
+> \`\`\`
+> 
+> \`\`\`
+> Hello from Java!
+> \`\`\`
 
 <a name="running_python_scripts"></a>
 
@@ -104,18 +118,22 @@ Hello from Java!
 
 Runs a Python file and checks its output. You could also check the Python and pip versions for debugging purposes.
 
-\`\`\`
-$ # python3 --version
-$ # python3 -m pip --version
+> \`\`\`
+> $ # python3 --version
+> $ # python3 -m pip --version
+> \`\`\`
+> 
+> \`\`\`
+> [ no output ]
+> \`\`\`
 
-[ no output ]
-\`\`\`
-
-\`\`\`
-$ python3 demo/hello.py
-
-Hello from Python!
-\`\`\`
+> \`\`\`
+> $ python3 demo/hello.py
+> \`\`\`
+> 
+> \`\`\`
+> Hello from Python!
+> \`\`\`
 
 <a name="failing_test_case_example"></a>
 
@@ -123,11 +141,13 @@ Hello from Python!
 
 This test is designed to fail to demonstrate how failed tests are reported.
 
-\`\`\`
-$ ./this/command/does/not/exist.sh
-
-bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
-\`\`\`
+> \`\`\`
+> $ ./this/command/does/not/exist.sh
+> \`\`\`
+> 
+> \`\`\`
+> bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
+> \`\`\`
 
 \`\`\`
 ❌ Error: bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
@@ -137,60 +157,63 @@ bash: line 1: ./this/command/does/not/exist.sh: No such file or directory
 
 ### Running Docker containers (70 / 70 points) [✅ passed]
 
-Docker images can be built and run within the autograder. Tests with Docker
-commands may need a longer timeout since pulling and building images can take some time.
+Docker images can be built and run within the autograder. Tests with Docker commands may need a longer timeout since pulling and building images can take some time.
 
-Note that for this test to work, Docker needs to be installed and running on the machine
-where the tests are executed. Therefore we do not *actually* run the commands in this example.
+Note that for this test to work, Docker needs to be installed and running on the machine where the tests are executed. Therefore we do not *actually* run the commands in this example.
 
-\`\`\`
-$ # you could build a Docker image for this test like this:
-$ # docker build --file=demo/hello.Dockerfile --tag=hello demo
-$ 
-$ # for demonstration purposes, we just output the Dockerfile
-$ cat demo/hello.Dockerfile
+> \`\`\`
+> $ # you could build a Docker image for this test like this:
+> $ # docker build --file=demo/hello.Dockerfile --tag=hello demo
+> $
+> $ # for demonstration purposes, we just output the Dockerfile
+> $ cat demo/hello.Dockerfile
+> \`\`\`
+> 
+> \`\`\`
+> FROM hello-world
+> 
+> # you can do any setup you want here, like installing dependencies or copying files to be tested
+> \`\`\`
 
-FROM hello-world
-
-# you can do any setup you want here, like installing dependencies or copying files to be tested
-\`\`\`
-
-\`\`\`
-$ # you can run the container like this:
-$ # docker run --rm hello
-$ 
-$ # for demonstration purposes, we just output the Dockerfile
-$ cat demo/hello.Dockerfile
-
-FROM hello-world
-
-# you can do any setup you want here, like installing dependencies or copying files to be tested
-\`\`\`
+> \`\`\`
+> $ # you can run the container like this:
+> $ # docker run --rm hello
+> $
+> $ # for demonstration purposes, we just output the Dockerfile
+> $ cat demo/hello.Dockerfile
+> \`\`\`
+> 
+> \`\`\`
+> FROM hello-world
+> 
+> # you can do any setup you want here, like installing dependencies or copying files to be tested
+> \`\`\`
 
 <a name="custom_grader_function"></a>
 
 ### Custom grader function (40 / 80 points) [⚠️ passed]
 
-This test uses a custom grader function to determine the points awarded. It actually just gives half
-the points and logs them in the test logs.
+This test uses a custom grader function to determine the points awarded. It actually just gives half the points and logs them in the test logs.
 
-As you can see in the code, the \`customGrader\` function has access to the test context, including
-the test case details and the logs. This allows for implementing complex grading logic based on various factors.
+As you can see in the code, the \`customGrader\` function has access to the test context, including the test case details and the logs. This allows for implementing complex grading logic based on various factors.
 
-In a *real* autograder, you would inspect the logs and other context within the custom grader
-to determine the points based on more complex logic than just whether the test passed or not.
+In a *real* autograder, you would inspect the logs and other context within the custom grader to determine the points based on more complex logic than just whether the test passed or not.
 
-\`\`\`
-$ echo 'Random points for this example!'
+> \`\`\`
+> $ echo 'Random points for this example!'
+> \`\`\`
+> 
+> \`\`\`
+> Random points for this example!
+> \`\`\`
 
-Random points for this example!
-\`\`\`
-
-\`\`\`
-$ Custom grader
-
-Awarded 40 points based on custom grading logic.
-\`\`\`"
+> \`\`\`
+> $ Custom grader
+> \`\`\`
+> 
+> \`\`\`
+> Awarded 40 points based on custom grading logic.
+> \`\`\`"
 `;
 
 exports[`result.json > matches snapshot 1`] = `

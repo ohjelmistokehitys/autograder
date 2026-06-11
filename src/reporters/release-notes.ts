@@ -148,19 +148,29 @@ class MarkdownReport {
      * Builds a code block for the given command log, including the actual command and its outputs.
      */
     private commandLog(log: RunLog): string {
+
+        const command = prefixLines(log.command, '$ ');
+
         // Combine stdout and stderr, but only if they exist
-        const combinedOutputs = [log.stdout?.trim(), log.stderr?.trim()].filter(s => s);
+        const combinedOutputs = [log.stdout?.trim(), log.stderr?.trim()]
+            .filter((s): s is string => !!s);
 
         if (combinedOutputs.length === 0) {
             combinedOutputs.push('[ no output ]');
         }
-        const command = prefixLines(log.command, '$ ');
-        return code([command, ...combinedOutputs].join('\n\n'));
+
+        // creates code blocks for the command and all outputs and wraps them in a block quote
+        return blockQuote(
+            [command, ...combinedOutputs].map(s => code(s)).join('\n\n')
+        );
     }
 }
 
 /** Wraps the given string into a Markdown code block */
 const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;
+
+/** Wraps the given string into a Markdown block quote */
+const blockQuote = (text: string) => prefixLines(text, '> ');
 
 /** Trims indentation from all lines in a string */
 const trimIndentation = (str: string) => str.trim().split('\n').map(line => line.trim()).join('\n');
