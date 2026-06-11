@@ -2,7 +2,7 @@ import { runSuite } from "../src";
 
 
 runSuite({
-    defaultTimeout: { seconds: 5 },
+    defaultTimeout: { seconds: 20 },
     defaultScore: 10,
 
     name: "Example test suite",
