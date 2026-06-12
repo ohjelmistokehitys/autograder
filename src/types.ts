@@ -11,10 +11,10 @@ declare module 'vitest' {
 }
 
 export type TestMeta = {
-    description?: string;
-    maxScore?: number;
+    readonly description?: string;
+    readonly maxScore?: number;
     score?: number;
-    logs?: {
+    readonly logs?: {
         command: string;
 
         stdout?: string;
@@ -105,7 +105,7 @@ export namespace AutogradingTests {
     }
 
     /** Timeout with a number and unit. */
-    type Timeout = { seconds: number } | { minutes: number };
+    export type Timeout = { seconds?: number, minutes?: number };
 
     /** A runnable can be given either as a shell command, an object or a JS function. */
     export type Runnable = string | RunnableObj | Hook;

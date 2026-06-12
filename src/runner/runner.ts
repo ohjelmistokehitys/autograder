@@ -58,11 +58,12 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
                 meta: {
                     description: testCase.description,
                     score: 0,
-                    maxScore: testCase.score ?? testSuite.defaultScore
+                    maxScore: testCase.score ?? testSuite.defaultScore,
+                    logs: []
                 }
             };
             test(testCase.name, options, async ({ task: { meta } }) => {
-                const logs = meta.logs = [];
+                const logs = meta.logs!;
                 let output = "";
 
                 if (testCase.$setup) {
@@ -178,9 +179,9 @@ export function runSuite(testSuite: AutogradingTests.TestSuite): void {
  * specified for the runnable, the default timeout from the test suite is used.
  */
 function timeout(runnable: AutogradingTests.Runnable, suite: AutogradingTests.TestSuite): number {
-    const timeout = (typeof runnable === 'object' && runnable?.timeout) || suite.defaultTimeout;
+    const milliseconds = (t: AutogradingTests.Timeout) => (t.seconds ?? 0) * 1000 + (t.minutes ?? 0) * 60 * 1000;
 
-    return 'seconds' in timeout ? timeout.seconds * 1000 : timeout.minutes * 60 * 1000;
+    return (typeof runnable === 'object' && runnable?.timeout) ? milliseconds(runnable.timeout) : milliseconds(suite.defaultTimeout);
 }
 
 /**

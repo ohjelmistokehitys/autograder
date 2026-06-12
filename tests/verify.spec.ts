@@ -12,7 +12,7 @@ beforeAll(async () => {
 
 describe('release-notes.md', () => {
     it('matches snapshot', () => {
-        const contents = replaceVariableData(releaseNotes);
+        const contents = stripEnvironmentDetails(releaseNotes);
 
         expect(contents).toMatchSnapshot();
     });
@@ -34,7 +34,7 @@ describe('result.json', () => {
  * numbers in stack traces with placeholders so snapshots are less flaky
  * across different environments, test runs and dependency versions.
  */
-function replaceVariableData(report: string): string {
+function stripEnvironmentDetails(report: string): string {
     return ignoreErrorLineDetails(ignoreWorkingDirectory(report));
 }
 
