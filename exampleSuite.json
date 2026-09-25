@@ -9,7 +9,7 @@
             "score": 10,
             "$run": "echo test 1",
             "contains": "test 1",
-            "skipRemainingOnFailure": true
+            "timeout": "5s"
         },
         {
             "name": "Test 2",
@@ -20,7 +20,29 @@
             "contains": [
                 "hello",
                 "world"
-            ]
+            ],
+            "notContains": "example",
+            "timeout": 5
+        },
+        {
+            "name": "Test 3",
+            "description": "This test fails intentionally to demonstrate the autograder's failure handling",
+            "score": 20,
+            "$run": "cat",
+            "input": "hello world",
+            "contains": [
+                "example"
+            ],
+            "timeout": 5,
+            "skipRemainingOnFailure": true
+        },
+        {
+            "name": "Test 4",
+            "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
+            "score": 20,
+            "$run": "echo test 4",
+            "contains": "test 4",
+            "timeout": 5
         }
     ]
 }
