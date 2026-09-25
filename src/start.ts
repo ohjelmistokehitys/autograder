@@ -16,9 +16,15 @@ function main(filePath: string, options: Record<string, string>) {
     }
 
     if (options["status-output"]) {
-        const statusFile = options["status-output"];
-        const scores = markdownReport.scores;
-        writeFileSync(statusFile, `Score: ${scores.score} / ${scores.maxScore}`, "utf-8");
+        const outputFile = options["status-output"];
+        const state = (report.error && "error") || (report.results.every(r => r.status === "passed") && "success") || "failure";
+
+        const statusReport = {
+            state,
+            context: "Autograder",
+            description: `Score: ${markdownReport.scores.score} / ${markdownReport.scores.maxScore}`
+        };
+        writeFileSync(outputFile, JSON.stringify(statusReport, null, 2), "utf-8");
     }
 }
 
