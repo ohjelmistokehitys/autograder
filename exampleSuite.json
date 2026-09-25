@@ -1,110 +1,116 @@
 {
-    "name": "Example test suite",
-    "description": "This test suite demonstrates key capabilities of the autograder tool.",
-    "defaultTimeout": "1m",
+    "name": "Autograder Feature Showcase",
+    "description": "Runnable examples of command execution, stdin, output assertions, timeouts, lifecycle hooks, and failure handling. The final test intentionally fails so the following test demonstrates `skipRemainingOnFailure`.",
+    "defaultTimeout": "10s",
     "tests": [
         {
-            "name": "Test 1",
-            "description": "This test checks if the autograder tool can run a simple command",
+            "name": "Check command output",
+            "description": "Run one command and assert that expected text is present and unwanted text is absent.",
             "score": 10,
-            "$run": "echo test 1",
-            "contains": "test 1",
-            "timeout": "5s"
+            "$run": "echo 'Build status: passed'",
+            "contains": "Build status: passed",
+            "notContains": "failed"
         },
         {
-            "name": "Test 2",
-            "description": "This test uses a command line tool and a regex check",
+            "name": "Pass input to a command",
+            "description": "Send stdin to the command and apply multiple text and regular-expression assertions to its output.",
             "score": 10,
-            "$run": "node --version",
-            "regex": "v\\d+\\.\\d+\\.\\d+",
-            "timeout": "5s"
-        },
-        {
-            "name": "Test 2",
-            "description": "This test checks if the autograder tool can run a command with input",
-            "score": 20,
             "$run": "cat",
-            "input": "hello world",
+            "input": "sample input text",
             "contains": [
-                "hello",
-                "world"
+                "sample",
+                "input",
+                "text"
             ],
-            "notContains": "example",
-            "timeout": 5
+            "notContains": "error",
+            "regex": [
+                "text"
+            ]
         },
         {
-            "name": "Test 3",
-            "description": "This test checks if the autograder tool can run multiple commands and lifecycle hooks",
-            "score": 20,
+            "name": "Run a sequence of commands",
+            "description": "Run commands in order and check their combined stdout, including a regular-expression match.",
+            "score": 10,
+            "$run": [
+                "npm init --help | head -n 20",
+                "npm --version"
+            ],
+            "includes": [
+                "package.json"
+            ],
+            "regex": "\\d+\\.\\d+\\.\\d+"
+        },
+        {
+            "name": "Use setup and teardown commands",
+            "description": "Create a small artifact before the test, inspect it with multiple run commands, then remove it afterward.",
+            "score": 10,
             "$setup": [
-                "echo Setting up...",
-                "echo hello > demo.txt",
-                "echo world >> demo.txt"
+                "echo 'hello world' | base64 > .autograder-example.txt"
             ],
             "$run": [
-                "mv demo.txt demo2.txt",
-                "cat demo2.txt"
+                "cat .autograder-example.txt",
+                "cat .autograder-example.txt | base64 --decode"
             ],
             "contains": [
-                "hello",
-                "world"
-            ],
-            "notContains": [
-                "example",
-                "test"
+                "aGVsbG8gd29ybGQK",
+                "hello world"
             ],
             "$teardown": [
-                "echo Tearing down...",
-                "rm demo2.txt"
+                "rm .autograder-example.txt"
+            ]
+        },
+        {
+            "name": "Override the default timeout",
+            "description": "Use a short per-test timeout for a command that completes within the limit.",
+            "score": 10,
+            "$run": "sleep 1; echo 'finished in time'",
+            "contains": "finished in time",
+            "timeout": "2s"
+        },
+        {
+            "name": "Unicode support in command output",
+            "description": "This test demonstrates support for Unicode characters in command output.",
+            "score": 10,
+            "$run": [
+                "echo 'å ä ö 🙂'"
             ],
-            "timeout": 5
-        },
-        {
-            "name": "Test 4",
-            "description": "This test checks if the autograder tool can run (and fail) a command with a timeout",
-            "score": 20,
-            "$run": "echo sleeping until timeout; sleep 10",
-            "timeout": "1s"
-        },
-        {
-            "name": "Test 5",
-            "description": "This test fails intentionally to demonstrate the autograder's failure handling",
-            "score": 20,
-            "$run": "cat",
-            "input": "hello world",
             "contains": [
-                "example"
+                "å",
+                "ä",
+                "ö",
+                "🙂"
             ],
-            "timeout": 5,
+            "timeout": "2s"
+        },
+        {
+            "name": "Expected failure: output does not contain expected text",
+            "description": "This test demonstrates how the autograder handles a test that fails to produce the expected output.",
+            "score": 10,
+            "$run": "echo 'Today is a sunny day'",
+            "contains": [
+                "rainy"
+            ],
+            "notContains": [
+                "sunny"
+            ]
+        },
+        {
+            "name": "Expected failure: command exits nonzero",
+            "description": "This final demonstration intentionally exits with an error. The runner should mark it failed and skip the next test.",
+            "score": 10,
+            "$run": [
+                "echo 'This is an intentional error' 1>&2",
+                "exit 1",
+                "remaining commands after and error are skipped"
+            ],
             "skipRemainingOnFailure": true
         },
         {
-            "name": "Test 6",
-            "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
-            "score": 20,
-            "$run": "echo test 6",
-            "contains": "test 6",
-            "timeout": 5
-        },
-        {
-            "name": "Test 7",
-            "description": "This test fails intentionally to demonstrate the autograder's failure handling",
-            "score": 20,
-            "$run": "cat",
-            "input": "hello world",
-            "contains": [
-                "example"
-            ],
-            "timeout": 5,
-            "skipRemainingOnFailure": true
-        },
-        {
-            "name": "Test 8",
-            "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
-            "score": 20,
-            "$run": "echo test",
-            "contains": "test",
-            "timeout": 5
+            "name": "Skipped after the expected failure",
+            "description": "This test is not run because the previous test enables skipRemainingOnFailure.",
+            "score": 10,
+            "$run": "echo 'This command should not run'",
+            "contains": "This command should not run"
         }
     ]
 }

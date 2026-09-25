@@ -1,5 +1,5 @@
 import { ProcessOutput, $ as zx, type Duration } from 'zx';
-import type { AutogradingReport, Commands, RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
+import type { AutogradingReport, RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
 
 const $: typeof zx = zx({
     env: {
@@ -23,21 +23,14 @@ export async function runSuite(suite: TestSuite): Promise<AutogradingReport> {
 
     console.log(`# Running test suite: ${suite.name}\n\n${suite.description}\n`);
 
-    try {
-        for (const test of report.results) {
-            await runTest(test, suite);
+    for (const test of report.results) {
+        await runTest(test, suite);
 
-            if (test.status === "failed" && test.testCase.skipRemainingOnFailure) {
-                console.log(`Skipping remaining tests due to failure in "${test.testCase.name}".\n`);
-                report.results.filter(t => t.status === "pending").forEach(t => { t.status = "skipped"; });
-                break;
-            }
+        if (test.status === "failed" && test.testCase.skipRemainingOnFailure) {
+            console.log(`Skipping remaining tests due to failure in "${test.testCase.name}".\n`);
+            report.results.filter(t => t.status === "pending").forEach(t => { t.status = "skipped"; });
+            break;
         }
-
-
-    } catch (error) {
-        console.error("Error running test suite:", error);
-        report.error = `Error running test suite: ${error}`;
     }
 
     return report;
@@ -47,9 +40,10 @@ export async function runSuite(suite: TestSuite): Promise<AutogradingReport> {
 async function runTest(testRun: TestRun, suite: TestSuite) {
     console.log(`\n## Running test: ${testRun.testCase.name}\n`);
 
-    const test = testRun.testCase;
+    const { testCase } = testRun;
+    const timeout = testCase.timeout ?? suite.defaultTimeout;
 
-    const setupLogs = await run(toArray(test.$setup), { timeout: test.timeout ?? suite.defaultTimeout, input: "" });
+    const setupLogs = await runCommands(toArray(testCase.$setup), { timeout, input: "" });
     const setupOk = setupLogs.every(log => log.ok);
 
     if (!setupOk) {
@@ -58,12 +52,12 @@ async function runTest(testRun: TestRun, suite: TestSuite) {
     }
 
     if (setupOk) {
-        const options = { timeout: test.timeout ?? suite.defaultTimeout, input: test.input ?? "" };
+        const options = { timeout, input: testCase.input ?? "" };
 
-        const logs = await run(test.$run, options);
+        const logs = await runCommands(toArray(testCase.$run), options);
         testRun.logs.push(...logs);
 
-        const validation = validateTestOutput(test, testRun.logs);
+        const validation = validateTestOutput(testCase, testRun.logs);
 
         if (validation.success) {
             testRun.status = "passed";
@@ -73,7 +67,7 @@ async function runTest(testRun: TestRun, suite: TestSuite) {
         }
     }
 
-    await run(toArray(test.$teardown), { timeout: test.timeout ?? suite.defaultTimeout, input: "" });
+    await runCommands(toArray(testCase.$teardown), { timeout, input: "" });
 
     if (testRun.status !== "passed") {
         console.error(`\n❌  Failed: ${testRun.error}\n`);
@@ -81,19 +75,20 @@ async function runTest(testRun: TestRun, suite: TestSuite) {
 }
 
 
-async function run(commands: Commands, options: { timeout: Timeout, input: string }): Promise<RunLog[]> {
-    const { timeout, input } = options;
+async function runCommands(commands: string[], options: { timeout: Timeout, input?: string }): Promise<RunLog[]> {
+    const { timeout, input = "" } = options;
     const logs: RunLog[] = [];
 
-    for (const cmd of toArray(commands)) {
+    for (const cmd of commands) {
         console.log(`$ ${cmd}`);
 
-        const { stdout, stderr, ok } = await exec(cmd, input, timeout);
+        const { stdout, stderr, ok } = await executeShell(cmd, input ?? "", timeout);
 
         logs.push({ command: cmd, ok, stdout, stderr, input });
 
         stdout && console.log(stdout.trim());
         stderr && console.error(stderr.trim());
+        console.log();
 
         // skip the remaining commands if one fails
         if (!ok) {
@@ -105,7 +100,7 @@ async function run(commands: Commands, options: { timeout: Timeout, input: strin
 }
 
 
-async function exec(cmd: string, input: string, timeout: Duration): Promise<ProcessOutput> {
+async function executeShell(cmd: string, input: string, timeout: Duration): Promise<ProcessOutput> {
     try {
         return await $({ timeout, input })`bash -c ${cmd}`;
     } catch (error) {

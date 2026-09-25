@@ -132,10 +132,9 @@ export class MarkdownReport {
             outputs.push('[ no output ]');
         }
 
-        // creates code blocks for the command and all outputs and wraps them in a block quote
         return blockQuote(
             (log.input ? `Input: ${log.input}\n\n` : '') +
-            [command, ...outputs].map(s => code(s)).join('\n\n')
+            code(command + '\n\n' + outputs.join('\n\n'))
         );
     }
 }
