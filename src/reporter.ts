@@ -99,7 +99,7 @@ export class MarkdownReport {
             return [
                 `<a name="${test.anchor}"></a>`, // anchor for linking from the summary table
 
-                `### ${test.icon}. ${test.name}`,
+                `### ${test.name}`,
 
                 test.description,
 
@@ -109,9 +109,8 @@ export class MarkdownReport {
 
                 test.skipped ? warning('This test was skipped. See logs and the full report for more information.') : '',
 
-                test.status,
+                `${test.icon} ${test.status}${test.maxScore ? `, ${test.score} / ${test.maxScore} points` : ''}`,
 
-                test.maxScore ? `${test.score ?? 0} / ${test.maxScore} points` : ''
             ].filter(line => line) // exclude potential empty lines
         });
 
