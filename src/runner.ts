@@ -1,4 +1,4 @@
-import { $ as zx } from 'zx';
+import { ProcessOutput, $ as zx, type Duration } from 'zx';
 import type { AutogradingReport, Commands, RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
 
 const $: typeof zx = zx({
@@ -11,9 +11,7 @@ const $: typeof zx = zx({
 });
 
 
-export function runSuite(suite: TestSuite): AutogradingReport {
-    $.timeout = suite.defaultTimeout;
-
+export async function runSuite(suite: TestSuite): Promise<AutogradingReport> {
     const report: AutogradingReport = {
         suite,
         results: suite.tests.map(test => ({
@@ -27,7 +25,7 @@ export function runSuite(suite: TestSuite): AutogradingReport {
 
     try {
         for (const test of report.results) {
-            runTest(test, suite);
+            await runTest(test, suite);
 
             if (test.status === "failed" && test.testCase.skipRemainingOnFailure) {
                 console.log(`Skipping remaining tests due to failure in "${test.testCase.name}".\n`);
@@ -46,12 +44,12 @@ export function runSuite(suite: TestSuite): AutogradingReport {
 }
 
 
-function runTest(testRun: TestRun, suite: TestSuite) {
+async function runTest(testRun: TestRun, suite: TestSuite) {
     console.log(`\n## Running test: ${testRun.testCase.name}\n`);
 
     const test = testRun.testCase;
 
-    const setupLogs = run(toArray(test.$setup));
+    const setupLogs = await run(toArray(test.$setup), { timeout: test.timeout ?? suite.defaultTimeout, input: "" });
     const setupOk = setupLogs.every(log => log.ok);
 
     if (!setupOk) {
@@ -60,8 +58,9 @@ function runTest(testRun: TestRun, suite: TestSuite) {
     }
 
     if (setupOk) {
-        const options = { timeout: test.timeout ?? suite.defaultTimeout, input: test.input };
-        const logs = run(test.$run, options);
+        const options = { timeout: test.timeout ?? suite.defaultTimeout, input: test.input ?? "" };
+
+        const logs = await run(test.$run, options);
         testRun.logs.push(...logs);
 
         const validation = validateTestOutput(test, testRun.logs);
@@ -74,7 +73,7 @@ function runTest(testRun: TestRun, suite: TestSuite) {
         }
     }
 
-    run(toArray(test.$teardown));
+    await run(toArray(test.$teardown), { timeout: test.timeout ?? suite.defaultTimeout, input: "" });
 
     if (testRun.status !== "passed") {
         console.error(`\n❌  Failed: ${testRun.error}\n`);
@@ -82,16 +81,19 @@ function runTest(testRun: TestRun, suite: TestSuite) {
 }
 
 
-function run(commands: Commands, options?: { timeout?: Timeout, input?: string }): RunLog[] {
-    const { timeout, input } = options || {};
+async function run(commands: Commands, options: { timeout: Timeout, input: string }): Promise<RunLog[]> {
+    const { timeout, input } = options;
     const logs: RunLog[] = [];
 
     for (const cmd of toArray(commands)) {
-        const { stdout, stderr, ok } = $({ timeout, input, sync: true, noThrow: true })`bash -c ${cmd}`;
+        console.log(`$ ${cmd}`);
+
+        const { stdout, stderr, ok } = await exec(cmd, input, timeout);
+
         logs.push({ command: cmd, ok, stdout, stderr, input });
 
-        const out = ok ? console.log : console.error;
-        out(['```', `$ ${cmd}`, stdout, stderr, '```'].filter(s => s).map(s => s.trim()).join('\n'));
+        stdout && console.log(stdout.trim());
+        stderr && console.error(stderr.trim());
 
         // skip the remaining commands if one fails
         if (!ok) {
@@ -103,6 +105,14 @@ function run(commands: Commands, options?: { timeout?: Timeout, input?: string }
 }
 
 
+async function exec(cmd: string, input: string, timeout: Duration): Promise<ProcessOutput> {
+    try {
+        return await $({ timeout, input })`bash -c ${cmd}`;
+    } catch (error) {
+        return error as ProcessOutput;
+    }
+}
+
 /**
  * Validates that the output of a test case meets the expected conditions defined in the test case.
  */
@@ -112,7 +122,7 @@ function validateTestOutput(testCase: TestCase, logs: RunLog[]): { success: fals
         if (!log.ok) {
             return {
                 success: false,
-                error: `Command failed: ${log.stderr}`
+                error: `Command failed: ${log.stderr || log.command}`
             };
         }
     }

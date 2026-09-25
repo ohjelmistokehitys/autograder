@@ -13,6 +13,14 @@
         },
         {
             "name": "Test 2",
+            "description": "This test uses a command line tool and a regex check",
+            "score": 10,
+            "$run": "node --version",
+            "regex": "v\\d+\\.\\d+\\.\\d+",
+            "timeout": "5s"
+        },
+        {
+            "name": "Test 2",
             "description": "This test checks if the autograder tool can run a command with input",
             "score": 20,
             "$run": "cat",
@@ -45,9 +53,6 @@
                 "example",
                 "test"
             ],
-            "regex": [
-                "^hello\\s+world\\s+$"
-            ],
             "$teardown": [
                 "echo Tearing down...",
                 "rm demo2.txt"
@@ -56,6 +61,13 @@
         },
         {
             "name": "Test 4",
+            "description": "This test checks if the autograder tool can run (and fail) a command with a timeout",
+            "score": 20,
+            "$run": "echo sleeping until timeout; sleep 10",
+            "timeout": "1s"
+        },
+        {
+            "name": "Test 5",
             "description": "This test fails intentionally to demonstrate the autograder's failure handling",
             "score": 20,
             "$run": "cat",
@@ -67,11 +79,31 @@
             "skipRemainingOnFailure": true
         },
         {
-            "name": "Test 5",
+            "name": "Test 6",
             "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
             "score": 20,
-            "$run": "echo test 5",
-            "contains": "test 5",
+            "$run": "echo test 6",
+            "contains": "test 6",
+            "timeout": 5
+        },
+        {
+            "name": "Test 7",
+            "description": "This test fails intentionally to demonstrate the autograder's failure handling",
+            "score": 20,
+            "$run": "cat",
+            "input": "hello world",
+            "contains": [
+                "example"
+            ],
+            "timeout": 5,
+            "skipRemainingOnFailure": true
+        },
+        {
+            "name": "Test 8",
+            "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
+            "score": 20,
+            "$run": "echo test",
+            "contains": "test",
             "timeout": 5
         }
     ]

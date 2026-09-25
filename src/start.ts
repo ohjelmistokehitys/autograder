@@ -4,9 +4,9 @@ import { runSuite } from "./runner.ts";
 import type { TestSuite } from "./types.ts";
 
 
-function main(filePath: string, options: Record<string, string>) {
+async function main(filePath: string, options: Record<string, string>) {
     const suite: TestSuite = JSON.parse(readFileSync(filePath, "utf-8"));
-    const report = runSuite(suite);
+    const report = await runSuite(suite);
 
     const markdownReport = new MarkdownReport(report);
 
