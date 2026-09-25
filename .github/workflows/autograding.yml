@@ -29,15 +29,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        # TODO: Replace the score and description with the actual grading results
         run: |
           gh api \
             --method POST \
             repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA \
             -f state=success \
             -f context='Autograder' \
-            -f description='Score: 8/10' \
+            -f description="$(cat status.txt)" \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Save step summary
-        run:  cat readme.md >> "$GITHUB_STEP_SUMMARY"
+        run:  cat summary.md >> "$GITHUB_STEP_SUMMARY"
