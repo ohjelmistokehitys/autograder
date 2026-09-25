@@ -82,16 +82,16 @@ function runTest(testRun: TestRun, suite: TestSuite) {
 }
 
 
-function run(cmd: Commands, options?: { timeout?: Timeout, input?: string }): RunLog[] {
+function run(commands: Commands, options?: { timeout?: Timeout, input?: string }): RunLog[] {
     const { timeout, input } = options || {};
     const logs: RunLog[] = [];
 
-    for (const command of toArray(cmd)) {
+    for (const cmd of toArray(commands)) {
         const { stdout, stderr, ok } = $({ timeout, input, sync: true, noThrow: true })`bash -c ${cmd}`;
-        logs.push({ command, ok, stdout, stderr, input });
+        logs.push({ command: cmd, ok, stdout, stderr, input });
 
         const out = ok ? console.log : console.error;
-        out(['```', `$ ${command}`, stdout, stderr, '```'].filter(s => s).map(s => s.trim()).join('\n'));
+        out(['```', `$ ${cmd}`, stdout, stderr, '```'].filter(s => s).map(s => s.trim()).join('\n'));
 
         // skip the remaining commands if one fails
         if (!ok) {
