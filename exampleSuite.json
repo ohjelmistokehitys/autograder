@@ -16,8 +16,11 @@
             "description": "This test checks if the autograder tool can run a command with input",
             "score": 20,
             "$run": "cat",
-            "input": "test 2",
-            "contains": "test 2"
+            "input": "hello world",
+            "contains": [
+                "hello",
+                "world"
+            ]
         }
     ]
 }
