@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { MarkdownReport } from "./reporters/summary.ts";
-import { runSuite } from "./runner/runner.ts";
+import { MarkdownReport } from "./reporter.ts";
+import { runSuite } from "./runner.ts";
 import type { TestSuite } from "./types.ts";
 
 

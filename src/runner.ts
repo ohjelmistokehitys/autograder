@@ -1,5 +1,5 @@
 import { $ as zx } from 'zx';
-import type { AutogradingReport, Commands, RunLog, TestCase, TestRun, TestSuite, Timeout } from '../types.ts';
+import type { AutogradingReport, Commands, RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
 
 const $: typeof zx = zx({
     env: {

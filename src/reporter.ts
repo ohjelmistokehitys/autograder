@@ -1,5 +1,5 @@
-import type { AutogradingReport, RunLog } from '../types.ts';
-import { TestReport } from './models/test-report.ts';
+import { TestReport } from './models.ts';
+import type { AutogradingReport, RunLog } from './types.ts';
 
 /**
  * Class for generating a markdown report from a test run.

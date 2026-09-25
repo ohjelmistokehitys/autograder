@@ -1,4 +1,4 @@
-import type { RunLog, TestRun } from "../../types.ts";
+import type { RunLog, TestRun } from "./types.ts";
 
 export class TestReport {
     private readonly run: TestRun;
