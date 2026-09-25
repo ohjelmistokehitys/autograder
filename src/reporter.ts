@@ -93,13 +93,13 @@ export class MarkdownReport {
      * Builds the detailed section for each test case.
      */
     private testCaseLines(): string[] {
-        const testCaseReports = this.testReports.map(test => {
+        const testCaseReports = this.testReports.map((test, i, all) => {
             const commandLogs = test.logs.map((log) => this.commandLog(log));
 
             return [
                 `<a name="${test.anchor}"></a>`, // anchor for linking from the summary table
 
-                `### ${test.name}`,
+                `### ${i + 1} / ${all.length}. ${test.name}`,
 
                 test.description,
 
@@ -110,6 +110,8 @@ export class MarkdownReport {
                 test.skipped ? warning('This test was skipped. See logs and the full report for more information.') : '',
 
                 `${test.icon} ${test.status}${test.maxScore ? `, ${test.score} / ${test.maxScore} points` : ''}`,
+
+                `-`.repeat(40)
 
             ].filter(line => line) // exclude potential empty lines
         });
@@ -133,8 +135,12 @@ export class MarkdownReport {
         }
 
         return blockQuote(
-            (log.input ? `Input: ${log.input}\n\n` : '') +
-            code(command + '\n\n' + outputs.join('\n\n'))
+            code(
+                (log.input ? `[user input: ${log.input}]\n\n` : '') +
+                command +
+                '\n\n' +
+                outputs.join('\n\n')
+            )
         );
     }
 }
