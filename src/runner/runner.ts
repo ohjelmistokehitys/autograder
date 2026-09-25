@@ -1,195 +1,161 @@
-import { expect, test, TestOptions } from 'vitest';
-import { ProcessOutput, $ as zx } from 'zx';
-import { AutogradingTests, RunLog } from '../types.js';
+import { $ as zx } from 'zx';
+import type { AutogradingReport, Commands, RunLog, TestCase, TestRun, TestSuite, Timeout } from '../types.ts';
+
+const $: typeof zx = zx({
+    env: {
+        ...process.env,
+        NO_COLOR: 'true',
+        CI: 'true'
+    },
+    quiet: true
+});
 
 
-/**
- * Runs the given test suite using Vitest's test runner.
-*/
-export function runSuite(testSuite: AutogradingTests.TestSuite): void {
-    const $: typeof zx = zx({
-        /*
-         * Pass environment variables to the commands being executed. Include NO_COLOR and CI to make
-         * sure the output is consistent and does not contain color codes or other formatting that
-         * might interfere with parsing the output in the test cases
-         */
-        env: { ...process.env, NO_COLOR: 'true', CI: 'true' },
+export function runSuite(suite: TestSuite): AutogradingReport {
+    $.timeout = suite.defaultTimeout;
 
-        // change the working directory to the suite's cwd if specified
-        cwd: testSuite.cwd ?? process.cwd()
-    });
+    const report: AutogradingReport = {
+        suite,
+        results: suite.tests.map(test => ({
+            testCase: test,
+            logs: [],
+            status: "pending"
+        }))
+    };
 
-    test.describe(
-        testSuite.name, {
-        meta: {
-            description: testSuite.description,
-            score: 0,
-            maxScore: testSuite.defaultScore
-        }
-    }, () => {
+    console.log(`# Running test suite: ${suite.name}\n\n${suite.description}\n`);
 
-        toArray(testSuite.beforeAll).forEach(runnable => {
-            test.beforeAll(async () => {
-                await run(runnable);
-            }, timeout(runnable, testSuite));
-        });
+    try {
+        for (const test of report.results) {
+            runTest(test, suite);
 
-        toArray(testSuite.beforeEach).forEach(runnable => {
-            test.beforeEach(async () => {
-                await run(runnable);
-            }, timeout(runnable, testSuite));
-        });
-
-        toArray(testSuite.afterAll).forEach(runnable => {
-            test.afterAll(async () => {
-                await run(runnable);
-            }, timeout(runnable, testSuite));
-        });
-
-        toArray(testSuite.afterEach).forEach(runnable => {
-            test.afterEach(async () => {
-                await run(runnable);
-            }, timeout(runnable, testSuite));
-        });
-
-        testSuite.tests.forEach(testCase => {
-            const options: TestOptions = {
-                timeout: timeout(testCase, testSuite),
-                meta: {
-                    description: testCase.description,
-                    score: 0,
-                    maxScore: testCase.score ?? testSuite.defaultScore,
-                    logs: []
-                }
-            };
-            test(testCase.name, options, async ({ task: { meta } }) => {
-                const logs = meta.logs!;
-                let output = "";
-
-                if (testCase.$setup) {
-                    const setup = await runCmd(testCase.$setup, logs);
-                    output += setup.toString();
-                }
-
-                const run = await runCmd(testCase.$run, logs);
-                output += run.toString();
-
-                await assertOutput(testCase, output);
-
-                if (testCase.customGrader) {
-                    // if a custom grader is provided, use it to determine the points awarded for the test
-                    const { score } = await testCase.customGrader({ logs, testCase, runCmd, testSuite });
-                    meta.score = score;
-                } else {
-                    // full points awarded if there is no custom grader and the test passed without throwing an error
-                    meta.score = meta.maxScore;
-                }
-            });
-        });
-    });
-
-    /**
-     * Runs the given runnable, which can be either a shell command or a function. If the runnable
-     * is a shell command, it is executed using zx. If it is a function, it is called directly.
-     *
-     * @param runnable
-     */
-    async function run(runnable: AutogradingTests.Runnable): Promise<ProcessOutput> {
-        if (typeof runnable === 'function') {
-            return await runnable({ runCmd, testSuite });
-        }
-
-        if (typeof runnable === 'string') {
-            return await runCmd(runnable);
-        }
-
-        if ('$run' in runnable) {
-            return await runCmd(runnable.$run);
-        }
-
-        throw new Error(`Unsupported runnable: ${JSON.stringify(runnable)}`);
-    }
-
-    /**
-     * Asserts that the output of a test case meets the expected conditions defined in the test case.
-     */
-    async function assertOutput(testCase: AutogradingTests.TestCase, output: string) {
-        if ('contains' in testCase) {
-            const expectedOutputs = toArray(testCase.contains);
-            expectedOutputs.forEach(expected => {
-                expect(output).toContain(expected);
-            });
-        }
-
-        if ('notContains' in testCase) {
-            const notExpectedOutputs = toArray(testCase.notContains);
-            notExpectedOutputs.forEach(notExpected => {
-                expect(output).not.toContain(notExpected);
-            });
-        }
-
-        // Run the specified command and compare its output to the test output.
-        if ('$compareRun' in testCase && testCase.$compareRun) {
-            const compareRun = await run(testCase.$compareRun);
-            const compareOutput = compareRun.toString().trim();
-
-            expect(output).toContain(compareOutput);
-        }
-    }
-
-    /**
-     * Runs the given command using zx and bash. Returns the output of the command.
-     *
-     * If logs are provided, the command, its output, and any errors are logged to the logs array.
-     *
-     * Errors are re-thrown after logging, so that they can be handled by the caller (to mark a test as failed).
-     */
-    async function runCmd(cmd: string, logs?: RunLog[]): Promise<ProcessOutput> {
-        const entry: RunLog = {
-            command: cmd
-        };
-
-        logs?.push(entry);
-
-        try {
-            const p = await $`bash -c ${cmd}`;
-            entry.stdout = p.stdout;
-            entry.stderr = p.stderr;
-            return p;
-
-        } catch (err) {
-            // Check if the error was thrown by zx and contains the expected properties
-            const isProcessError = (e: unknown): e is ProcessOutput => e !== null && typeof e === 'object' && 'stdout' in e && 'stderr' in e;
-
-            if (isProcessError(err)) {
-                const p = err as ProcessOutput;
-                entry.stdout = p.stdout;
-                entry.stderr = p.stderr;
+            if (test.status === "failed" && test.testCase.skipRemainingOnFailure) {
+                console.log(`Skipping remaining tests due to failure in "${test.testCase.name}".\n`);
+                report.results.filter(t => t.status === "pending").forEach(t => { t.status = "skipped"; });
+                break;
             }
-            throw err;
-
         }
+
+
+    } catch (error) {
+        console.error("Error running test suite:", error);
+        report.error = `Error running test suite: ${error}`;
+    }
+
+    return report;
+}
+
+
+function runTest(testRun: TestRun, suite: TestSuite) {
+    console.log(`\n## Running test: ${testRun.testCase.name}\n`);
+
+    const test = testRun.testCase;
+
+    const setupLogs = run(toArray(test.$setup));
+    const setupOk = setupLogs.every(log => log.ok);
+
+    if (!setupOk) {
+        testRun.logs.push(...setupLogs);
+        testRun.status = "failed";
+    }
+
+    if (setupOk) {
+        const options = { timeout: test.timeout ?? suite.defaultTimeout, input: test.input };
+        const logs = run(test.$run, options);
+        testRun.logs.push(...logs);
+
+        const validation = validateTestOutput(test, testRun.logs);
+
+        if (validation.success) {
+            testRun.status = "passed";
+        } else {
+            testRun.error = validation.error;
+            testRun.status = "failed";
+        }
+    }
+
+    run(toArray(test.$teardown));
+
+    if (testRun.status !== "passed") {
+        console.error(`\n❌  Failed: ${testRun.error}\n`);
     }
 }
 
 
+function run(cmd: Commands, options?: { timeout?: Timeout, input?: string }): RunLog[] {
+    const { timeout, input } = options || {};
+    const logs: RunLog[] = [];
+
+    for (const command of toArray(cmd)) {
+        const { stdout, stderr, ok } = $({ timeout, input, sync: true, noThrow: true })`bash -c ${cmd}`;
+        logs.push({ command, ok, stdout, stderr, input });
+
+        const out = ok ? console.log : console.error;
+        out(['```', `$ ${command}`, stdout, stderr, '```'].filter(s => s).map(s => s.trim()).join('\n'));
+
+        // skip the remaining commands if one fails
+        if (!ok) {
+            break;
+        }
+    }
+
+    return logs;
+}
+
 
 /**
- * Returns the timeout for the given runnable in milliseconds. If there is no timeout
- * specified for the runnable, the default timeout from the test suite is used.
+ * Validates that the output of a test case meets the expected conditions defined in the test case.
  */
-function timeout(runnable: AutogradingTests.Runnable, suite: AutogradingTests.TestSuite): number {
-    const milliseconds = (t: AutogradingTests.Timeout) => (t.seconds ?? 0) * 1000 + (t.minutes ?? 0) * 60 * 1000;
+function validateTestOutput(testCase: TestCase, logs: RunLog[]): { success: false, error: string } | { success: true } {
 
-    return (typeof runnable === 'object' && runnable?.timeout) ? milliseconds(runnable.timeout) : milliseconds(suite.defaultTimeout);
+    for (const log of logs) {
+        if (!log.ok) {
+            return {
+                success: false,
+                error: `Command failed: ${log.stderr}`
+            };
+        }
+    }
+
+    const output = logs.map(log => log.stdout).join('\n\n');
+
+    for (const expected of toArray(testCase.contains)) {
+        if (!output.includes(expected)) {
+            return {
+                success: false,
+                error: `The output should contain "${expected}"`
+            };
+        }
+    }
+
+    for (const notExpected of toArray(testCase.notContains)) {
+        if (output.includes(notExpected)) {
+            return {
+                success: false,
+                error: `The output should not contain "${notExpected}"`
+            };
+        }
+    }
+
+    for (const regex of toArray(testCase.regex).map(pattern => new RegExp(pattern))) {
+        if (!regex.test(output)) {
+            return {
+                success: false,
+                error: `The output should match the regex: ${regex}`
+            };
+        }
+    }
+
+    return { success: true };
 }
+
 
 /**
  * Returns an array from the given value. If the value is already an array, it is returned as is.
  * If the value is a single item, it is wrapped in an array. If the value is undefined, an empty array is returned.
  */
-function toArray<T>(value?: T | T[]): T[] {
-    if (value === undefined) {
+function toArray<T>(value: NonNullable<T> | NonNullable<T>[] | undefined): NonNullable<T>[] {
+    if (typeof value === 'undefined') {
         return [];
     }
     if (Array.isArray(value)) {

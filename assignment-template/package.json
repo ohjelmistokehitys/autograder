@@ -1,7 +1,0 @@
-{
-    "name": "assignment-template",
-    "scripts": {
-        "test": "vitest run"
-    },
-    "dependencies": {}
-}

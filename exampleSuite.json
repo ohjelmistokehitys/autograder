@@ -1,0 +1,23 @@
+{
+    "name": "Example test suite",
+    "description": "This test suite demonstrates key capabilities of the autograder tool.",
+    "defaultTimeout": "1m",
+    "tests": [
+        {
+            "name": "Test 1",
+            "description": "This test checks if the autograder tool can run a simple command",
+            "score": 10,
+            "$run": "echo test 1",
+            "contains": "test 1",
+            "skipRemainingOnFailure": true
+        },
+        {
+            "name": "Test 2",
+            "description": "This test checks if the autograder tool can run a command with input",
+            "score": 20,
+            "$run": "cat",
+            "input": "test 2",
+            "contains": "test 2"
+        }
+    ]
+}
