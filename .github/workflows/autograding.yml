@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Run autograder
-        run: node src/start.ts exampleSuite.json --markdown-output summary.md --status-output status.txt
+        run: node src/start.ts exampleSuite.json --markdown-output "$GITHUB_STEP_SUMMARY" --status-output status.txt
 
       - name: Publish score
         env:
@@ -38,5 +38,3 @@ jobs:
             -f description="$(cat status.txt)" \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-      - name: Save step summary
-        run:  cat summary.md >> "$GITHUB_STEP_SUMMARY"
