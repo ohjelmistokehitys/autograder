@@ -26,6 +26,36 @@
         },
         {
             "name": "Test 3",
+            "description": "This test checks if the autograder tool can run multiple commands and lifecycle hooks",
+            "score": 20,
+            "$setup": [
+                "echo Setting up...",
+                "echo hello > demo.txt",
+                "echo world >> demo.txt"
+            ],
+            "$run": [
+                "mv demo.txt demo2.txt",
+                "cat demo2.txt"
+            ],
+            "contains": [
+                "hello",
+                "world"
+            ],
+            "notContains": [
+                "example",
+                "test"
+            ],
+            "regex": [
+                "^hello\\s+world\\s+$"
+            ],
+            "$teardown": [
+                "echo Tearing down...",
+                "rm demo2.txt"
+            ],
+            "timeout": 5
+        },
+        {
+            "name": "Test 4",
             "description": "This test fails intentionally to demonstrate the autograder's failure handling",
             "score": 20,
             "$run": "cat",
@@ -37,11 +67,11 @@
             "skipRemainingOnFailure": true
         },
         {
-            "name": "Test 4",
+            "name": "Test 5",
             "description": "This test is skipped because the previous test failed and skipRemainingOnFailure was set to true",
             "score": 20,
-            "$run": "echo test 4",
-            "contains": "test 4",
+            "$run": "echo test 5",
+            "contains": "test 5",
             "timeout": 5
         }
     ]

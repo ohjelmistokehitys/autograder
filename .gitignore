@@ -3,5 +3,5 @@ node_modules
 *.tmp
 dist
 *.tgz
-status.txt
 summary.md
+status.json
