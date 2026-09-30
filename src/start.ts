@@ -11,9 +11,18 @@ async function main(filePath: string, markdownOutputPath: string, statusOutputPa
     const status = {
         state: report.passed ? "success" : "failure",
         context: "Autograder",
-        description: `Score: ${report.score} / ${report.maxScore}`
+        description: `Score: ${report.score}/${report.maxScore}`
     };
+
     writeFileSync(statusOutputPath, JSON.stringify(status, null, 2), "utf-8");
+
+    if (process.env.GITHUB_STEP_SUMMARY) {
+        writeFileSync(process.env.GITHUB_STEP_SUMMARY, report.toMarkdown(), "utf-8");
+    }
+
+    if (process.env.GITHUB_OUTPUT) {
+        writeFileSync(process.env.GITHUB_OUTPUT, `status_state=${status.state}\nstatus_description=Score: ${status.description}`, "utf-8");
+    }
 }
 
 const suiteFileArg = process.argv[2] ?? "tests.json";
