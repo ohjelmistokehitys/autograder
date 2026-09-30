@@ -23,7 +23,9 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: |
+          npm run build
+          chmod +x dist/cli.js
 
       - name: Run autograder
         run: ./dist/cli.js exampleSuite.json "$GITHUB_STEP_SUMMARY" status.json
