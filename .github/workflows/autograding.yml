@@ -22,13 +22,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build
+        run: npm run build
+
       - name: Run autograder
-        run: node src/start.ts exampleSuite.json --markdown-output "$GITHUB_STEP_SUMMARY" --status-output status.json
+        run: ./dist/cli.js exampleSuite.json "$GITHUB_STEP_SUMMARY" status.json
 
       - name: Publish score
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
         run: |
           gh api \
             --method POST \

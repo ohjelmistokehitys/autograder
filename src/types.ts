@@ -4,57 +4,48 @@ export type TestSuite = {
     name: string,
     description: string,
 
-    /** The default timeout for each shell command in the suite. */
-    defaultTimeout: Timeout;
-
     tests: TestCase[];
-};
-
-export type AutogradingReport = {
-    suite: TestSuite;
-    results: TestRun[];
-    error?: string;
 };
 
 export type TestCase = {
     name: string;
     description: string;
 
-    $run: Commands;
+    run: string | string[];
     input?: string;
 
-    $setup?: Commands;
-    $teardown?: Commands;
+    setup?: string | string[];
+    teardown?: string | string[];
 
     score?: number;
 
-    contains?: Matches;
-    notContains?: Matches;
-    regex?: Matches;
-
     timeout?: Timeout;
+
+    /** Strings that the test command outputs must contain. */
+    contains?: string[];
+    /** Strings that the test command outputs must not contain. */
+    notContains?: string[];
+
+    /** Regular expressions that the test command outputs must match. */
+    regex?: string[];
 
     /** Whether a failing test causes subsequent tests to be skipped. */
     skipRemainingOnFailure?: boolean;
 };
 
-export type Commands = string | string[];
-
-export type Matches = string | string[];
-
 export type TestRun = {
-    testCase: TestCase;
-    status: "passed" | "failed" | "pending" | "skipped";
+    test: TestCase;
+    status: "passed" | "failed" | "skipped";
     logs: RunLog[];
-    error?: string;
+
+    /** Errors caused by test validation rules (contains, notContains, regex) */
+    errors?: string[];
 }
 
 export type RunLog = {
-    command: string;
+    cmd: string;
     input?: string;
-    stdout?: string;
-    stderr?: string;
-
+    output: string;
     ok: boolean;
 };
 

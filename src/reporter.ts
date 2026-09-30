@@ -1,67 +1,56 @@
-import { TestReport } from './models.ts';
-import type { AutogradingReport, RunLog } from './types.ts';
+import type { RunLog, TestRun, TestSuite } from './types.ts';
 
-/**
- * Class for generating a markdown report from a test run.
- */
-export class MarkdownReport {
-    readonly report: AutogradingReport;
+export class AutogradingReport {
+    readonly results: TestRun[];
+    readonly suite: TestSuite;
 
-    constructor(report: AutogradingReport) {
-        this.report = report;
+    constructor(suite: TestSuite, results: TestRun[]) {
+        this.suite = suite;
+        this.results = results;
+    }
+
+    get passed() {
+        return this.results.every(run => run.status === "passed");
+    }
+
+    get score() {
+        return this.results.reduce(
+            (sum, run) => sum + (run.status === "passed" ? (run.test.score ?? 0) : 0),
+            0);
+    }
+
+    get maxScore() {
+        return this.suite.tests.reduce((sum, test) => sum + (test.score ?? 0), 0);
     }
 
     /**
      * Builds the full markdown report, including a summary of test results and detailed sections for each test case.
      */
-    toString(): string {
+    toMarkdown(): string {
         return [
-            this.headLines(),
+            this.headerLines(),
             this.summaryLines(),
             this.testCaseLines()
         ].flat().join('\n\n');
     }
 
-    private get suite() {
-        return this.report.suite;
-    }
-
-    private get testReports() {
-        return this.report.results.map(r => new TestReport(r));
-    }
-
-    get scores() {
-        return {
-            score: sum(this.testReports.map(result => result.score)),
-            maxScore: sum(this.testReports.map(result => result.maxScore)),
-        };
-    }
-
     /**
      * Builds the header section of the markdown report, including potential suite level errors.
      */
-    private headLines(): string[] {
+    private headerLines(): string[] {
         const { name, description } = this.suite;
 
-        const { score, maxScore } = this.scores;
-        const passed = this.testReports.filter(result => result.passed).length;
-        const total = this.testReports.length;
+        const passed = this.results.filter(result => result.status === 'passed').length;
+        const total = this.results.length;
 
         let lines = [
             `# ${name}`,
             description,
             '----',
-            `Score: **${score} / ${maxScore}**`,
+            `Score: **${this.score} / ${this.maxScore}**`,
             `Passed: **${passed} / ${total}**`,
             '----',
         ];
-
-        if (this.report.error) {
-            lines.push(
-                `## An error occurred while running the test suite`,
-                caution(this.report.error)
-            );
-        }
 
         return lines;
     }
@@ -75,14 +64,15 @@ export class MarkdownReport {
             `| --- | --------- | ------ | ------ |`
         ];
 
-        const rows = this.testReports
-            .map(test => [
-                test.icon,
-                `[${test.name}](#${test.anchor})`, // link to the log section for this test case
-                test.status,
-                `${test.score} / ${test.maxScore}`
+        // Build a markdown table with each test case's details
+        const rows = this.results
+            .map(result => [
+                statusIcon(result.status),
+                `[${result.test.name}](#${anchor(result.test.name)})`, // link to the log section for this test case
+                result.status,
+                `${result.status === 'passed' ? (result.test.score ?? 0) : 0} / ${result.test.score ?? 0}`
             ])
-            .map(row => `| ${row.join(' | ')} |`);
+            .map(columns => `| ${columns.join(' | ')} |`);
 
         const table = [...header, ...rows].join('\n');
 
@@ -93,11 +83,12 @@ export class MarkdownReport {
      * Builds the detailed section for each test case.
      */
     private testCaseLines(): string[] {
-        const testCaseReports = this.testReports.map((test, i, all) => {
-            const commandLogs = test.logs.map((log) => this.commandLog(log));
+        const testCases = this.results.map((result, i, all) => {
+            const test = result.test;
+            const commandLogs = result.logs.map((log) => this.commandLog(log));
 
             return [
-                `<a name="${test.anchor}"></a>`, // anchor for linking from the summary table
+                `<a name="${anchor(test.name)}"></a>`, // anchor for linking from the summary table
 
                 `### ${i + 1} / ${all.length}. ${test.name}`,
 
@@ -105,11 +96,13 @@ export class MarkdownReport {
 
                 ...commandLogs,
 
-                test.error ? caution(code(test.error)) : '',
+                result.errors?.length ? caution(code(result.errors.join('\n'))) : '',
 
-                test.skipped ? warning('This test was skipped. See logs and the full report for more information.') : '',
+                result.status === 'skipped' ? warning('This test was skipped. See logs and the full report for more information.') : '',
 
-                `${test.icon} ${test.status}${test.maxScore ? `, ${test.score} / ${test.maxScore} points` : ''}`,
+                `${statusIcon(result.status)} ${result.status}`,
+
+                `Score: ${result.status === 'passed' ? (test.score ?? 0) : 0} / ${test.score ?? 0}`,
 
                 `-`.repeat(40)
 
@@ -117,32 +110,33 @@ export class MarkdownReport {
         });
 
 
-        return ["## Test cases", ...testCaseReports.flat()];
+        return ["## Test cases", ...testCases.flat()];
     }
 
     /**
      * Builds a code block for the given command log, including the actual command and its outputs.
      */
     private commandLog(log: RunLog): string {
+        const func = log.ok ? blockQuote : caution;
 
-        const command = prefixLines(log.command, '$ ');
-
-        // Combine stdout and stderr, but only if they exist
-        const outputs = [log.stdout?.trim(), log.stderr?.trim()].filter((s): s is string => !!s);
-
-        if (outputs.length === 0) {
-            outputs.push('[ no output ]');
-        }
-
-        return blockQuote(
+        return func(
             code(
                 (log.input ? `[user input: ${log.input}]\n\n` : '') +
-                command +
+                `$ ${log.cmd}` +
                 '\n\n' +
-                outputs.join('\n\n')
+                log.output || '[ no output ]'
             )
         );
     }
+}
+
+export function statusIcon(status: TestRun["status"]): string {
+    const icons: Record<TestRun["status"], string> = {
+        "passed": "✅",
+        "failed": "❌",
+        "skipped": "⚠️"
+    };
+    return icons[status] || "❓";
 }
 
 /** Adds a github markdown caution notice using a block quote. */
@@ -157,8 +151,8 @@ const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;
 /** Wraps the given string into a Markdown block quote */
 const blockQuote = (text: string) => prefixLines(text, '> ');
 
-/** Sums an array of numbers. */
-const sum = (arr: number[]) => arr.reduce((acc, cur) => acc + cur, 0);
-
 /** Removes potential indentation and adds the given prefix to each line in the given text */
 const prefixLines = (text: string, prefix: string) => text.split('\n').map(line => `${prefix}${line}`).join('\n');
+
+/** An alphanumeric identifier for the given string, suitable for use in URLs. */
+const anchor = (text: string) => text.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');

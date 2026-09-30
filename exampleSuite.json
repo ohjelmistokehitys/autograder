@@ -1,28 +1,33 @@
 {
     "name": "Autograder Feature Showcase",
     "description": "Runnable examples of command execution, stdin, output assertions, timeouts, lifecycle hooks, and failure handling. The final test intentionally fails so the following test demonstrates `skipRemainingOnFailure`.",
-    "defaultTimeout": "10s",
     "tests": [
         {
             "name": "Check command output",
             "description": "Run one command and assert that expected text is present and unwanted text is absent.",
             "score": 10,
-            "$run": "echo 'Build status: passed'",
-            "contains": "Build status: passed",
-            "notContains": "failed"
+            "run": "echo 'Build status: passed'",
+            "contains": [
+                "Build status: passed"
+            ],
+            "notContains": [
+                "failed"
+            ]
         },
         {
             "name": "Pass input to a command",
             "description": "Send stdin to the command and apply multiple text and regular-expression assertions to its output.",
             "score": 10,
-            "$run": "cat",
+            "run": "cat",
             "input": "sample input text",
             "contains": [
                 "sample",
                 "input",
                 "text"
             ],
-            "notContains": "error",
+            "notContains": [
+                "error"
+            ],
             "regex": [
                 "text"
             ]
@@ -31,23 +36,25 @@
             "name": "Run a sequence of commands",
             "description": "Run commands in order and check their combined stdout, including a regular-expression match.",
             "score": 10,
-            "$run": [
+            "run": [
                 "npm init --help | head -n 20",
                 "npm --version"
             ],
-            "includes": [
+            "contains": [
                 "package.json"
             ],
-            "regex": "\\d+\\.\\d+\\.\\d+"
+            "regex": [
+                "\\d+\\.\\d+\\.\\d+"
+            ]
         },
         {
             "name": "Use setup and teardown commands",
             "description": "Create a small artifact before the test, inspect it with multiple run commands, then remove it afterward.",
             "score": 10,
-            "$setup": [
+            "setup": [
                 "echo 'hello world' | base64 > .autograder-example.txt"
             ],
-            "$run": [
+            "run": [
                 "cat .autograder-example.txt",
                 "cat .autograder-example.txt | base64 --decode"
             ],
@@ -55,7 +62,7 @@
                 "aGVsbG8gd29ybGQK",
                 "hello world"
             ],
-            "$teardown": [
+            "teardown": [
                 "rm .autograder-example.txt"
             ]
         },
@@ -63,15 +70,34 @@
             "name": "Override the default timeout",
             "description": "Use a short per-test timeout for a command that completes within the limit.",
             "score": 10,
-            "$run": "sleep 1; echo 'finished in time'",
-            "contains": "finished in time",
+            "run": [
+                "sleep 1",
+                "echo this test has a 2 second timeout",
+                "echo finished in time"
+            ],
+            "contains": [
+                "finished in time"
+            ],
             "timeout": "2s"
+        },
+        {
+            "name": "Expected failure: 1 second timeout exceeded",
+            "description": "Use a short per-test timeout for a command and see it fail.",
+            "score": 10,
+            "run": [
+                "sleep 2",
+                "echo 'this will not make it in time'"
+            ],
+            "notContains": [
+                "this will not make it in time"
+            ],
+            "timeout": "1s"
         },
         {
             "name": "Unicode support in command output",
             "description": "This test demonstrates support for Unicode characters in command output.",
             "score": 10,
-            "$run": [
+            "run": [
                 "echo 'å ä ö 🙂'"
             ],
             "contains": [
@@ -86,7 +112,7 @@
             "name": "Expected failure: output does not contain expected text",
             "description": "This test demonstrates how the autograder handles a test that fails to produce the expected output.",
             "score": 10,
-            "$run": "echo 'Today is a sunny day'",
+            "run": "echo 'Today is a sunny day'",
             "contains": [
                 "rainy"
             ],
@@ -98,7 +124,7 @@
             "name": "Expected failure: command exits nonzero",
             "description": "This final demonstration intentionally exits with an error. The runner should mark it failed and skip the next test.",
             "score": 10,
-            "$run": [
+            "run": [
                 "echo 'This is an intentional error' 1>&2",
                 "exit 1",
                 "remaining commands after and error are skipped"
@@ -109,8 +135,10 @@
             "name": "Skipped after the expected failure",
             "description": "This test is not run because the previous test enables skipRemainingOnFailure.",
             "score": 10,
-            "$run": "echo 'This command should not run'",
-            "contains": "This command should not run"
+            "run": "echo 'This command should not run'",
+            "contains": [
+                "This command should not run"
+            ]
         }
     ]
 }

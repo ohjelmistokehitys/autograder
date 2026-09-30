@@ -1,170 +1,104 @@
-import { ProcessOutput, $ as zx, type Duration } from 'zx';
-import type { AutogradingReport, RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
+import { $ as zx } from 'zx';
+import { AutogradingReport, statusIcon } from './reporter.ts';
+import type { RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
 
-const $: typeof zx = zx({
-    env: {
-        ...process.env,
-        NO_COLOR: 'true',
-        CI: 'true'
-    },
-    quiet: true
-});
+const DEFAULT_TIMEOUT: Timeout = "15s"; // Default timeout for shell commands if not specified
 
+const $: typeof zx = zx({ env: { ...process.env, NO_COLOR: 'true', CI: 'true' }, quiet: true });
 
-export async function runSuite(suite: TestSuite): Promise<AutogradingReport> {
-    const report: AutogradingReport = {
-        suite,
-        results: suite.tests.map(test => ({
-            testCase: test,
-            logs: [],
-            status: "pending"
-        }))
-    };
+export class TestRunner {
+    private suite: TestSuite;
 
-    console.log(`# Running test suite: ${suite.name}\n\n${suite.description}\n`);
+    constructor(suite: TestSuite) {
+        this.suite = suite;
+    }
 
-    for (const test of report.results) {
-        await runTest(test, suite);
+    async run(): Promise<AutogradingReport> {
+        const results: TestRun[] = [];
+        for (const test of this.suite.tests) {
+            if (results.some(res => res.status === "failed" && res.test.skipRemainingOnFailure)) {
+                const result: TestRun = { test, status: "skipped", logs: [] };
+                results.push(result);
+                this.log(result);
+                continue;
+            }
 
-        if (test.status === "failed" && test.testCase.skipRemainingOnFailure) {
-            console.log(`Skipping remaining tests due to failure in "${test.testCase.name}".\n`);
-            report.results.filter(t => t.status === "pending").forEach(t => { t.status = "skipped"; });
-            break;
+            const result = await this.runTest(test);
+            this.log(result);
+            results.push(result);
         }
+        return new AutogradingReport(this.suite, results);
     }
 
-    return report;
-}
+    private async runTest(test: TestCase): Promise<TestRun> {
+        const commands = [test.setup, test.run, test.teardown].flat().filter((c): c is string => !!c);
+        const logs: RunLog[] = [];
 
-
-async function runTest(testRun: TestRun, suite: TestSuite) {
-    console.log(`\n## Running test: ${testRun.testCase.name}\n`);
-
-    const { testCase } = testRun;
-    const timeout = testCase.timeout ?? suite.defaultTimeout;
-
-    const setupLogs = await runCommands(toArray(testCase.$setup), { timeout, input: "" });
-    const setupOk = setupLogs.every(log => log.ok);
-
-    if (!setupOk) {
-        testRun.logs.push(...setupLogs);
-        testRun.status = "failed";
-    }
-
-    if (setupOk) {
-        const options = { timeout, input: testCase.input ?? "" };
-
-        const logs = await runCommands(toArray(testCase.$run), options);
-        testRun.logs.push(...logs);
-
-        const validation = validateTestOutput(testCase, testRun.logs);
-
-        if (validation.success) {
-            testRun.status = "passed";
-        } else {
-            testRun.error = validation.error;
-            testRun.status = "failed";
+        for (const command of commands) {
+            const log = await this.execute(command, test);
+            logs.push(log);
+            if (!log.ok) {
+                break; // Stop executing further commands if one fails
+            }
         }
+
+        const output = logs.map(log => log.output).join("\n");
+
+        const errors = [
+            test.contains?.filter(expected => !output.includes(expected)).map(expected => `Expected output to contain: "${expected}"`) ?? [],
+            test.notContains?.filter(expected => output.includes(expected)).map(expected => `Expected output not to contain: "${expected}"`) ?? [],
+            test.regex?.filter(pattern => !new RegExp(pattern).test(output)).map(pattern => `Expected output to match regex: "${pattern}"`) ?? []
+        ].flat();
+
+        return {
+            test,
+            logs,
+            errors: errors.length > 0 ? errors : undefined,
+            status: (errors.length === 0 && logs.every(log => log.ok)) ? "passed" : "failed"
+        };
     }
 
-    await runCommands(toArray(testCase.$teardown), { timeout, input: "" });
+    private async execute(cmd: string, test: TestCase): Promise<RunLog> {
+        const timeout = test.timeout ?? DEFAULT_TIMEOUT;
 
-    if (testRun.status !== "passed") {
-        console.error(`\n❌  Failed: ${testRun.error}\n`);
+        const { stdout, stderr, ok } = await $({ input: test.input, nothrow: true })`timeout --verbose ${timeout} bash -c ${cmd}`;
+
+        return {
+            cmd,
+            ok,
+            input: test.input,
+            output: [stdout, stderr].filter(c => !!c).map(text => text.trim()).join("\n")
+        };
     }
-}
 
+    private log(result: TestRun) {
+        console.log(`# ${result.test.name}  [${result.status}]\n`);
+        console.log(`Description: ${result.test.description}`);
 
-async function runCommands(commands: string[], options: { timeout: Timeout, input?: string }): Promise<RunLog[]> {
-    const { timeout, input = "" } = options;
-    const logs: RunLog[] = [];
-
-    for (const cmd of commands) {
-        console.log(`$ ${cmd}`);
-
-        const { stdout, stderr, ok } = await executeShell(cmd, input ?? "", timeout);
-
-        logs.push({ command: cmd, ok, stdout, stderr, input });
-
-        stdout && console.log(stdout.trim());
-        stderr && console.error(stderr.trim());
         console.log();
 
-        // skip the remaining commands if one fails
-        if (!ok) {
-            break;
+        result.logs.forEach(({ cmd, output, ok }) => {
+            console.log(
+                [`$ ${cmd}`, output, ok ? "[ok]" : "[error]"]
+                    .filter(c => !!c)
+                    .join("\n\n")
+                    // add indentation to each line of the output for better readability
+                    .split("\n").map(line => `  ${line}`).join("\n")
+            );
+            console.log();
+        });
+
+        if (result.errors && result.errors.length > 0) {
+            console.log("Failed checks:");
+            result.errors.forEach(error => console.log(`  - ${error}`));
+            console.log();
         }
-    }
 
-    return logs;
-}
-
-
-async function executeShell(cmd: string, input: string, timeout: Duration): Promise<ProcessOutput> {
-    try {
-        return await $({ timeout, input })`bash -c ${cmd}`;
-    } catch (error) {
-        return error as ProcessOutput;
-    }
-}
-
-/**
- * Validates that the output of a test case meets the expected conditions defined in the test case.
- */
-function validateTestOutput(testCase: TestCase, logs: RunLog[]): { success: false, error: string } | { success: true } {
-
-    for (const log of logs) {
-        if (!log.ok) {
-            return {
-                success: false,
-                error: `Command failed: ${log.stderr || log.command}`
-            };
+        if (result.status !== "passed") {
+            console.log(`\n${statusIcon(result.status)} ${result.status.toUpperCase()}`);
+            console.log();
         }
+
+        console.log(`-`.repeat(80) + "\n");
     }
-
-    const output = logs.map(log => log.stdout).join('\n\n');
-
-    for (const expected of toArray(testCase.contains)) {
-        if (!output.includes(expected)) {
-            return {
-                success: false,
-                error: `The output should contain "${expected}"`
-            };
-        }
-    }
-
-    for (const notExpected of toArray(testCase.notContains)) {
-        if (output.includes(notExpected)) {
-            return {
-                success: false,
-                error: `The output should not contain "${notExpected}"`
-            };
-        }
-    }
-
-    for (const regex of toArray(testCase.regex).map(pattern => new RegExp(pattern))) {
-        if (!regex.test(output)) {
-            return {
-                success: false,
-                error: `The output should match the regex: ${regex}`
-            };
-        }
-    }
-
-    return { success: true };
-}
-
-
-/**
- * Returns an array from the given value. If the value is already an array, it is returned as is.
- * If the value is a single item, it is wrapped in an array. If the value is undefined, an empty array is returned.
- */
-function toArray<T>(value: NonNullable<T> | NonNullable<T>[] | undefined): NonNullable<T>[] {
-    if (typeof value === 'undefined') {
-        return [];
-    }
-    if (Array.isArray(value)) {
-        return value;
-    }
-    return [value];
 }
