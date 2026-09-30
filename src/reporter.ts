@@ -96,7 +96,7 @@ export class AutogradingReport {
 
                 ...commandLogs,
 
-                result.errors?.length ? caution(code(result.errors.join('\n'))) : '',
+                result.errors?.length ? caution(`The following checks failed:\n` + prefixLines(result.errors.join('\n'), " - ")) : '',
 
                 result.status === 'skipped' ? warning('This test was skipped. See logs and the full report for more information.') : '',
 

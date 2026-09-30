@@ -42,12 +42,12 @@ export class TestRunner {
             }
         }
 
-        const output = logs.map(log => log.output).join("\n");
+        const output = logs.map(log => log.output).join("\n").toLowerCase();
 
         const errors = [
-            test.contains?.filter(expected => !output.includes(expected)).map(expected => `Expected output to contain: "${expected}"`) ?? [],
-            test.notContains?.filter(expected => output.includes(expected)).map(expected => `Expected output not to contain: "${expected}"`) ?? [],
-            test.regex?.filter(pattern => !new RegExp(pattern).test(output)).map(pattern => `Expected output to match regex: "${pattern}"`) ?? []
+            test.contains?.filter(expected => !output.includes(expected.toLowerCase())).map(expected => `The output should contain "${expected}"`) ?? [],
+            test.notContains?.filter(expected => output.includes(expected.toLowerCase())).map(expected => `The output should not to contain "${expected}"`) ?? [],
+            test.regex?.filter(pattern => !new RegExp(pattern).test(output)).map(pattern => `The output should match the regular expression "${pattern}"`) ?? []
         ].flat();
 
         return {

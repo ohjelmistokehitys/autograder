@@ -1,35 +1,32 @@
 {
-    "name": "Autograder Feature Showcase",
-    "description": "Runnable examples of command execution, stdin, output assertions, timeouts, lifecycle hooks, and failure handling. The final test intentionally fails so the following test demonstrates `skipRemainingOnFailure`.",
+    "name": "Autograder configuration example",
+    "description": "Runnable examples of command execution, stdin, output assertions, timeouts, lifecycle hooks, and failure handling.",
     "tests": [
         {
             "name": "Check command output",
             "description": "Run one command and assert that expected text is present and unwanted text is absent.",
             "score": 10,
-            "run": "echo 'Build status: passed'",
+            "run": "npm ls",
             "contains": [
-                "Build status: passed"
+                "autograder",
+                "typescript"
             ],
             "notContains": [
-                "failed"
+                "error",
+                "python"
             ]
         },
         {
             "name": "Pass input to a command",
-            "description": "Send stdin to the command and apply multiple text and regular-expression assertions to its output.",
+            "description": "Send stdin to the command and verify that the output contains the input text.",
             "score": 10,
+            "input": "this is my input",
             "run": "cat",
-            "input": "sample input text",
             "contains": [
-                "sample",
-                "input",
-                "text"
+                "this is my input"
             ],
             "notContains": [
                 "error"
-            ],
-            "regex": [
-                "text"
             ]
         },
         {
@@ -37,11 +34,8 @@
             "description": "Run commands in order and check their combined stdout, including a regular-expression match.",
             "score": 10,
             "run": [
-                "npm init --help | head -n 20",
+                "node --version",
                 "npm --version"
-            ],
-            "contains": [
-                "package.json"
             ],
             "regex": [
                 "\\d+\\.\\d+\\.\\d+"
@@ -81,8 +75,8 @@
             "timeout": "2s"
         },
         {
-            "name": "Expected failure: 1 second timeout exceeded",
-            "description": "Use a short per-test timeout for a command and see it fail.",
+            "name": "Failing test due to timeout",
+            "description": "This test deliberately exceeds the timeout limit, which should cause it to fail.",
             "score": 10,
             "run": [
                 "sleep 2",
@@ -105,15 +99,15 @@
                 "ä",
                 "ö",
                 "🙂"
-            ],
-            "timeout": "2s"
+            ]
         },
         {
-            "name": "Expected failure: output does not contain expected text",
+            "name": "Failing test due to output verification",
             "description": "This test demonstrates how the autograder handles a test that fails to produce the expected output.",
             "score": 10,
             "run": "echo 'Today is a sunny day'",
             "contains": [
+                "today",
                 "rainy"
             ],
             "notContains": [
@@ -121,19 +115,22 @@
             ]
         },
         {
-            "name": "Expected failure: command exits nonzero",
+            "name": "Failing test due to command exit code",
             "description": "This final demonstration intentionally exits with an error. The runner should mark it failed and skip the next test.",
             "score": 10,
             "run": [
                 "echo 'This is an intentional error' 1>&2",
                 "exit 1",
+                "echo 'remaining commands after and error are skipped'"
+            ],
+            "notContains": [
                 "remaining commands after and error are skipped"
             ],
             "skipRemainingOnFailure": true
         },
         {
             "name": "Skipped after the expected failure",
-            "description": "This test is not run because the previous test enables skipRemainingOnFailure.",
+            "description": "This test is not run because the previous test failed with skipRemainingOnFailure.",
             "score": 10,
             "run": "echo 'This command should not run'",
             "contains": [
