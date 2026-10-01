@@ -3,6 +3,7 @@
   "version": "0.0.4",
   "scripts": {
     "start": "node src/start.ts exampleSuite.json summary.md status.json",
+    "test": "vitest run",
     "build": "rm -rf dist ; tsc"
   },
   "main": "dist/index.js",
@@ -19,7 +20,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "typescript": "^7.0.0"
+    "typescript": "^7.0.0",
+    "vitest": "^5.0.1"
   },
   "homepage": "https://github.com/ohjelmistokehitys/autograder",
   "repository": {

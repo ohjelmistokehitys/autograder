@@ -1,0 +1,83 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AutogradingReport > renders suite summary and details for passed, failed, and skipped tests 1`] = `
+"# Sample Suite
+
+A report test suite
+
+----
+
+Score: **4 / 9**
+
+Passed: **1 / 3**
+
+----
+
+## Summary
+
+| Ok? | Test name | Status | Points |
+| --- | --------- | ------ | ------ |
+| ✅ | [Passing Test](#passing_test) | passed | 4 / 4 |
+| ❌ | [Missing Output](#missing_output) | failed | 0 / 3 |
+| ⚠️ | [Not Run](#not_run) | skipped | 0 / 2 |
+
+## Test cases
+
+<a name="passing_test"></a>
+
+### 1 / 3. Passing Test
+
+Checks a successful command
+
+> \`\`\`
+> [user input: sample input]
+> 
+> $ echo passed
+> 
+> passed
+> \`\`\`
+
+✅ passed
+
+Score: 4 / 4
+
+----------------------------------------
+
+<a name="missing_output"></a>
+
+### 2 / 3. Missing Output
+
+Checks a successful command
+
+> [!CAUTION]
+> \`\`\`
+> $ false
+> 
+> command failed
+> \`\`\`
+
+> [!CAUTION]
+> The following checks failed:
+>  - The output should contain "expected"
+
+❌ failed
+
+Score: 0 / 3
+
+----------------------------------------
+
+<a name="not_run"></a>
+
+### 3 / 3. Not Run
+
+Checks a successful command
+
+> [!WARNING]
+> This test was skipped. See logs and the full report for more information.
+
+⚠️ skipped
+
+Score: 0 / 2
+
+----------------------------------------"
+`;

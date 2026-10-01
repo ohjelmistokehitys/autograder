@@ -30,7 +30,7 @@ export class TestRunner {
         return new AutogradingReport(this.suite, results);
     }
 
-    private async runTest(test: TestCase): Promise<TestRun> {
+    async runTest(test: TestCase): Promise<TestRun> {
         const commands = [test.setup, test.run, test.teardown].flat().filter((c): c is string => !!c);
         const logs: RunLog[] = [];
 
@@ -58,7 +58,7 @@ export class TestRunner {
         };
     }
 
-    private async execute(cmd: string, test: TestCase): Promise<RunLog> {
+    async execute(cmd: string, test: TestCase): Promise<RunLog> {
         const timeout = test.timeout ?? DEFAULT_TIMEOUT;
 
         const { stdout, stderr, ok } = await $({ input: test.input, nothrow: true })`timeout --verbose ${timeout} bash -c ${cmd}`;
@@ -71,29 +71,35 @@ export class TestRunner {
         };
     }
 
-    private log(result: TestRun) {
-        console.log(`# ${result.test.name}  [${result.status}]\n`);
-        console.log(`${result.test.description}`);
-
-        console.log(` `);
+    log(result: TestRun) {
+        const log = [
+            `# ${result.test.name}  [${result.status}]`,
+            ``,
+            result.test.description,
+            ``
+        ];
 
         result.logs.forEach(({ cmd, output, ok }) => {
-            console.log(
+            log.push(
                 [`$ ${cmd}`, output, ok ? "[ok]" : "[error]"]
                     .filter(c => !!c)
                     .join("\n\n")
                     // add indentation to each line of the output for better readability
                     .split("\n").map(line => `  ${line}`).join("\n")
             );
-            console.log(` `);
+            log.push(` `);
         });
 
         if (result.errors && result.errors.length > 0) {
-            console.log("Failed checks:");
-            result.errors.forEach(error => console.log(`  - ${error}`));
-            console.log(` `);
+            log.push("Failed checks:");
+            log.push(...result.errors.map(error => `  - ${error}`));
+            log.push(` `);
         }
 
-        console.log(`-`.repeat(80) + "\n");
+        log.push(`-`.repeat(80) + "\n");
+
+        console.log(
+            log.map(line => line || " ").join("\n") // Ensure that empty lines are preserved in GitHub output
+        );
     }
 }
