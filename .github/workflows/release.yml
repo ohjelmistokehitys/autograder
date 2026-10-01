@@ -47,3 +47,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "Release v${{ steps.version.outputs.version }}"
           git push origin "release/v${{ steps.version.outputs.version }}" --force
+
+      - name: Replace and push version tags
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION%.*}"
+          for TAG in "v$MAJOR" "v$MINOR" "v$VERSION"; do
+            git tag -d "$TAG" 2>/dev/null || true
+            git push origin --delete "$TAG" 2>/dev/null || true
+            git tag "$TAG"
+            git push origin "$TAG"
+          done

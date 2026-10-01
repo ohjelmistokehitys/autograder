@@ -1,5 +1,5 @@
 import { $ as zx } from 'zx';
-import { AutogradingReport, statusIcon } from './reporter.ts';
+import { AutogradingReport } from './reporter.ts';
 import type { RunLog, TestCase, TestRun, TestSuite, Timeout } from './types.ts';
 
 const DEFAULT_TIMEOUT: Timeout = "15s"; // Default timeout for shell commands if not specified
@@ -73,9 +73,9 @@ export class TestRunner {
 
     private log(result: TestRun) {
         console.log(`# ${result.test.name}  [${result.status}]\n`);
-        console.log(`Description: ${result.test.description}`);
+        console.log(`${result.test.description}`);
 
-        console.log();
+        console.log(` `);
 
         result.logs.forEach(({ cmd, output, ok }) => {
             console.log(
@@ -85,18 +85,13 @@ export class TestRunner {
                     // add indentation to each line of the output for better readability
                     .split("\n").map(line => `  ${line}`).join("\n")
             );
-            console.log();
+            console.log(` `);
         });
 
         if (result.errors && result.errors.length > 0) {
             console.log("Failed checks:");
             result.errors.forEach(error => console.log(`  - ${error}`));
-            console.log();
-        }
-
-        if (result.status !== "passed") {
-            console.log(`\n${statusIcon(result.status)} ${result.status.toUpperCase()}`);
-            console.log();
+            console.log(` `);
         }
 
         console.log(`-`.repeat(80) + "\n");

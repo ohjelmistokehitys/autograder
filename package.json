@@ -1,6 +1,6 @@
 {
   "name": "@ohjelmistokehitys/autograder",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "start": "node src/start.ts exampleSuite.json summary.md status.json",
     "build": "rm -rf dist ; tsc"
