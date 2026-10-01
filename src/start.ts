@@ -21,7 +21,7 @@ async function main(filePath: string, markdownOutputPath: string, statusOutputPa
     }
 
     if (process.env.GITHUB_OUTPUT) {
-        writeFileSync(process.env.GITHUB_OUTPUT, `status_state=${status.state}\nstatus_description=Score: ${status.description}`, "utf-8");
+        writeFileSync(process.env.GITHUB_OUTPUT, `status_state=${status.state}\nstatus_description=${status.description}`, "utf-8");
     }
 
     if (!report.passed) {
