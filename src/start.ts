@@ -23,6 +23,10 @@ async function main(filePath: string, markdownOutputPath: string, statusOutputPa
     if (process.env.GITHUB_OUTPUT) {
         writeFileSync(process.env.GITHUB_OUTPUT, `status_state=${status.state}\nstatus_description=Score: ${status.description}`, "utf-8");
     }
+
+    if (!report.passed) {
+        process.exit(1);
+    }
 }
 
 const suiteFileArg = process.argv[2] ?? "tests.json";
