@@ -8,7 +8,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "bin": "dist/cli.js",
+  "bin": {
+    "autograder": "dist/cli.js"
+  },
   "files": [
     "dist/**/*"
   ],

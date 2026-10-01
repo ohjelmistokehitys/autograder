@@ -12,7 +12,6 @@ runs:
   steps:
     - name: Run tests and generate grading report
       id: grading
-      continue-on-error: true
       run: |
         "$GITHUB_ACTION_PATH/dist/cli.js" "$TEST_SUITE" "$GITHUB_STEP_SUMMARY" status.json
       shell: bash
@@ -22,7 +21,6 @@ runs:
     - name: Update commit status
       id: update_status
       if: steps.grading.outputs.status_state != '' && steps.grading.outputs.status_description != ''
-      continue-on-error: true
       run: |
         gh api \
           --method POST \
@@ -38,7 +36,7 @@ runs:
       shell: bash
 
     - name: Report grading result
-      if: always()
+      if: ${{ !cancelled() }}
       run: |
         if [[ "${{ steps.grading.outcome }}" == "failure" || "${{ steps.update_status.outcome }}" == "failure" ]]; then
           echo "❌ One or more steps failed."
