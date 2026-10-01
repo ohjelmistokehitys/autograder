@@ -1,7 +1,0 @@
-node_modules
-*.class
-*.tmp
-dist
-*.tgz
-summary.md
-status.json
