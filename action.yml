@@ -20,7 +20,7 @@ runs:
 
     - name: Update commit status
       id: update_status
-      if: steps.grading.outputs.status_state != '' && steps.grading.outputs.status_description != ''
+      if: ${{ !cancelled() && steps.grading.outputs.status_state != '' && steps.grading.outputs.status_description != '' }}
       run: |
         gh api \
           --method POST \
