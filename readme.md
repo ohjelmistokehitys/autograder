@@ -12,7 +12,32 @@ The autograder is implemented in Node.js and only supports Linux based operating
 
 See the [exampleSuite.json](./exampleSuite.json) file for an example of how to define a test suite for the autograder.
 
-See the actions tab and the [example workflow](./.github/workflows/autograding.yml) for an example of how the autograder runs in a GitHub Actions workflow.
+See the actions tab and the following workflows for an example of how the autograder runs in a GitHub Actions:
+
+
+```yml
+name: Autograding
+
+on:
+  push:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run the example suite using autograder
+        uses: ohjelmistokehitys/autograder@v0
+        timeout-minutes: 1
+        with:
+          test_suite: ./exampleSuite.json
+```
 
 To experiment with the autograder locally, you can run the following command:
 
