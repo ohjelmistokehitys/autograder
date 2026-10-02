@@ -3,6 +3,12 @@
     "description": "Runnable examples of command execution, stdin, output assertions, timeouts, lifecycle hooks, and failure handling.",
     "tests": [
         {
+            "name": "Run tests using Vitest",
+            "description": "Autograder can invoke other testing tools, such as Vitest. This test will self-check the autograder package by running its own test suite.",
+            "score": 20,
+            "run": "npm test"
+        },
+        {
             "name": "Check command output",
             "description": "Run one command and assert that expected text is present and unwanted text is absent.",
             "score": 20,
@@ -44,7 +50,7 @@
         {
             "name": "Use setup and teardown commands",
             "description": "Create a small artifact before the test, inspect it with multiple run commands, then remove it afterward.",
-            "score": 20,
+            "score": 10,
             "setup": [
                 "echo 'hello world' | base64 > .autograder-example.txt"
             ],
@@ -63,7 +69,7 @@
         {
             "name": "Override the default timeout",
             "description": "Use a short per-test timeout to prevent long-running commands from consuming resources.",
-            "score": 20,
+            "score": 10,
             "run": [
                 "echo this test has a 2 second timeout",
                 "sleep 1",
