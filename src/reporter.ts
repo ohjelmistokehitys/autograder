@@ -146,7 +146,12 @@ const caution = (text: string) => blockQuote(`[!CAUTION]\n${text}`);
 const warning = (text: string) => blockQuote(`[!WARNING]\n${text}`);
 
 /** Wraps the given string into a Markdown code block */
-const code = (text: string) => `\`\`\`\n${text}\n\`\`\``;
+const code = (text: string) => {
+    // Determine the number of backticks in the text to avoid conflicts with the code fence
+    const backtickCounts = (text.match(/`+/g) ?? []).map(ticks => ticks.length + 1);
+    const fence = '`'.repeat(Math.max(3, ...backtickCounts));
+    return `${fence}\n${text}\n${fence}`;
+};
 
 /** Wraps the given string into a Markdown block quote */
 const blockQuote = (text: string) => prefixLines(text, '> ');

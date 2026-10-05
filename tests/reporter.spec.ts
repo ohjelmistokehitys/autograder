@@ -63,4 +63,30 @@ describe('AutogradingReport', () => {
 
         expect(markdown).toMatchSnapshot();
     });
+
+    it('handles backticks in command output correctly', () => {
+        const testWithBackticks = createTest({
+            name: 'Backtick Test',
+            run: './some_script_that_outputs_backticks.sh',
+        });
+        const suite = createSuite([testWithBackticks]);
+        const results: TestRun[] = [
+            {
+                test: testWithBackticks,
+                status: 'passed',
+                logs: [{
+                    cmd: './some_script_that_outputs_backticks.sh',
+                    input: '',
+                    output: 'This is a `backtick` test. It even has ```code in triple backticks``` in it.',
+                    ok: true
+                }]
+            }
+        ];
+
+        const markdown = new AutogradingReport(suite, results).toMarkdown();
+
+        // The output should be wrapped in a code block with one more backticks to avoid conflicts
+        const [before, codeBlock, after] = markdown.split('````');
+        expect(codeBlock).toContain(results[0].logs[0].output);
+    });
 });

@@ -42,5 +42,6 @@ jobs:
 To experiment with the autograder locally, you can run the following command:
 
 ```bash
+# requires Linux operating system and Node.js installed
 npx git://github.com/ohjelmistokehitys/autograder#v0 exampleSuite.json
 ```
