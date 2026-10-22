@@ -1,6 +1,6 @@
 {
   "name": "@ohjelmistokehitys/autograder",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "start": "node src/start.ts exampleSuite.json summary.md status.json",
     "test": "vitest run",

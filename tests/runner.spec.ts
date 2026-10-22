@@ -79,6 +79,28 @@ describe('TestRunner', () => {
         });
     });
 
+    describe('Handling control characters in command output', () => {
+        it('preserves control characters in command output', async () => {
+            const test = createTest({
+                name: 'control character test',
+                run: [
+                    'echo -e "Line 1\nLine 2\tTabbed"',
+                    'echo -e "1\r2\r3"'
+                ],
+            });
+
+            const runner = new TestRunner(createSuite([test]));
+
+            const result = await runner.runTest(test);
+
+            expect(result.status).toBe('passed');
+            expect(result.logs[0].output).toContain('Line 1');
+            expect(result.logs[0].output).toContain('Line 2\tTabbed');
+
+            expect(result.logs[1].output).toContain('1\r2\r3');
+        });
+    }, 30_000);
+
     describe('Providing inputs to commands', () => {
         it('passes input to commands and checks output', async () => {
             const test = createTest({

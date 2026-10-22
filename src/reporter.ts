@@ -143,10 +143,11 @@ export function statusIcon(status: TestRun["status"]): string {
 const sanitizeOutput = (output: string) => {
     return output
         .trim()
+        .replaceAll('\r\n', '\n') // normalize line endings
         .split('\n')
-        .map(line => line.split('\r').pop() ?? '')
+        .map(line => line.split('\r').pop() ?? '') // only take the last part of the output after a carriage return, which is the final output after any overwriting
         .join('\n')
-        .replace("\t", "    "); // replace tabs with spaces for better formatting
+        .replace('\t', '    '); // replace tabs with spaces for better formatting
 }
 
 /** Adds a github markdown caution notice using a block quote. */
