@@ -89,4 +89,34 @@ describe('AutogradingReport', () => {
         const [before, codeBlock, after] = markdown.split('````');
         expect(codeBlock).toContain(results[0].logs[0].output);
     });
+
+    it('handles carriage returns in command output correctly', () => {
+        // Commands that simulate progress bars or dynamic output use carriage returns to overwrite the current line.
+        // We only want to keep the final output after the last carriage return.
+        const testWithCarriageReturns = createTest({
+            name: 'Carriage Return Test',
+            run: 'echo -e "starting\n..\r...\r....\nDone"',
+        });
+        const suite = createSuite([testWithCarriageReturns]);
+        const results: TestRun[] = [
+            {
+                test: testWithCarriageReturns,
+                status: 'passed',
+                logs: [{
+                    cmd: testWithCarriageReturns.run as string,
+                    input: '',
+                    output: 'starting\n..\r...\r....\nDone',
+                    ok: true
+                }]
+            }
+        ];
+
+        const markdown = new AutogradingReport(suite, results).toMarkdown();
+
+        // The command should be escaped properly in the markdown output, so newlines and carriage returns are visible as they are in the command string:
+        expect(markdown).toContain('$ echo -e "starting\\n..\\r...\\r....\\nDone"');
+
+        // The output should not contain the intermediate carriage return lines, only the final output after the last carriage return:
+        expect(markdown).toContain('> starting\n> ....\n> Done');
+    });
 });

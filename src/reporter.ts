@@ -122,9 +122,9 @@ export class AutogradingReport {
         return func(
             code(
                 (log.input ? `[user input: ${log.input}]\n\n` : '') +
-                `$ ${log.cmd}` +
+                `$ ${log.cmd.replaceAll(`\n`, `\\n`).replaceAll(`\r`, `\\r`)}` +
                 '\n\n' +
-                log.output || '[ no output ]'
+                sanitizeOutput(log.output || '[ no output ]')
             )
         );
     }
@@ -139,6 +139,16 @@ export function statusIcon(status: TestRun["status"]): string {
     return icons[status] || "❓";
 }
 
+/** Sanitizes the output of a command, which may contain unwanted control characters. */
+const sanitizeOutput = (output: string) => {
+    return output
+        .trim()
+        .split('\n')
+        .map(line => line.split('\r').pop() ?? '')
+        .join('\n')
+        .replace("\t", "    "); // replace tabs with spaces for better formatting
+}
+
 /** Adds a github markdown caution notice using a block quote. */
 const caution = (text: string) => blockQuote(`[!CAUTION]\n${text}`);
 
@@ -150,6 +160,7 @@ const code = (text: string) => {
     // Determine the number of backticks in the text to avoid conflicts with the code fence
     const backtickCounts = (text.match(/`+/g) ?? []).map(ticks => ticks.length + 1);
     const fence = '`'.repeat(Math.max(3, ...backtickCounts));
+
     return `${fence}\n${text}\n${fence}`;
 };
 
