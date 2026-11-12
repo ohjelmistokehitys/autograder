@@ -66,10 +66,10 @@ command strings. The following test fields are also supported:
   not guaranteed after a failure.
 - Each command runs through Bash on Linux. Keep commands portable in that
   environment and avoid relying on shell state persisting between commands.
-- Output from all executed commands is combined for assertions. Matching is
-  case-insensitive: both string checks and regular expressions use lowercased
-  output. Write regex patterns accordingly and escape backslashes for JSON
-  (for example, `"\\d+"`).
+- Output from all executed commands is combined for assertions. `contains`
+  and `notContains` are case-insensitive. Regex patterns are applied unchanged
+  to lowercased output without an `i` flag; use patterns that match that form
+  and escape backslashes for JSON (for example, `"\\d+"`).
 - `contains`, `notContains`, and `regex` are independent checks; all their
   entries must pass. A command that exits unsuccessfully fails the test even if
   output assertions pass.
